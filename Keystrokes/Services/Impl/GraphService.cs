@@ -241,6 +241,8 @@ namespace Keystrokes.Services
 
         private double CalcEuclidianDistance(Dictionary<string, (double dwell, double flight)> keystrokes1, Dictionary<string, (double dwell, double flight)> keystrokes2)
         {
+
+
             double sum = 0;
             keystrokes1.ToList().ForEach(k1 =>
             {
@@ -250,13 +252,17 @@ namespace Keystrokes.Services
                 if (keystrokes2.TryGetValue(k1.Key, out v2))
                 {
                     sum += Math.Pow(v1.dwell - v2.dwell, 2);
-                    sum += Math.Pow(v1.flight - v2.flight, 2);
+                    //sum += Math.Pow(v1.flight - v2.flight, 2);
                 }
             });
 
             return Math.Sqrt(sum);
 
         }
+
+
+
+
 
         public bool UpdateGraph(TrainSample trainSample, KnnGraph graph)
         {
