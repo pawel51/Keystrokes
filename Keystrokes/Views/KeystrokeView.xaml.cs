@@ -252,5 +252,17 @@ namespace Keystrokes.Views
             }
             graphService.UpdateGraphToDb(dc.GraphModel, DistanceMetric.EUCLIDIAN);
         }
+
+        private void ReadTestData_Click(object sender, RoutedEventArgs e)
+        {
+            //KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
+            //List<TestSample> samples = keystrokeService.Read("ss");
+            //foreach (TrainSample sample in samples)
+            //{
+            //    dc.TrainingSamples.Add(sample);
+            //    graphService.UpdateGraph(sample, dc.GraphModel);
+            //}
+            //graphService.UpdateGraphToDb(dc.GraphModel, DistanceMetric.EUCLIDIAN);
+        }
     }
 }

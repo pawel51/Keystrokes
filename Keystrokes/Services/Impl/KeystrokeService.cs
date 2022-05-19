@@ -141,6 +141,11 @@ namespace Keystrokes.Services.Impl
         {
             return context.TrainData.Include(m => m.Probes).ToList();
         }
+        public List<TestSample> GetTestSamples()
+        {
+            return context.TestData.Include(m => m.Probes).ToList();
+        }
+
 
         public List<TrainSample> ReadTreningData(string testDataFileName)
         {
@@ -161,6 +166,27 @@ namespace Keystrokes.Services.Impl
             }
 
             return trainSamples;
+        }
+
+        public List<TestSample> ReadTestingData(string testDataFileName)
+        {
+            List<TestSample> testSamples = new List<TestSample>();
+
+
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = false,
+                MissingFieldFound = null
+            };
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                //if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                //    SetupCategories(testDataFileName, config, fbd, testSamples);
+            }
+
+            return testSamples;
         }
 
         private void SetupCategories(string testDataFileName, CsvConfiguration config, FolderBrowserDialog fbd, List<TrainSample> trainSamples)
@@ -232,7 +258,74 @@ namespace Keystrokes.Services.Impl
             }
         }
 
-       
+        //private void SetupCategories(string testDataFileName, CsvConfiguration config, FolderBrowserDialog fbd, List<TrainSample> trainSamples)
+        //{
+
+        //    string[] files = Directory.GetFiles(fbd.SelectedPath);
+
+        //    List<SingleRowModel>[] sfm = new List<SingleRowModel>[files.Length];
+
+        //    for (int i = 0; i < files.Length; i++)
+        //    {
+        //        Dictionary<string, List<(double flight, double dwell)>> probe
+        //            = new Dictionary<string, List<(double flight, double dwell)>>();
+
+        //        string probeName = files[i].Substring(files[i].Length - 9);
+        //        try
+        //        {
+        //            using (var reader = new StreamReader(files[i]))
+        //            using (var csv = new CsvReader(reader, config))
+        //            {
+        //                if (probeName == testDataFileName)
+        //                {
+        //                    continue;
+        //                }
+
+
+        //                try
+        //                {
+        //                    sfm[i] = csv.GetRecords<SingleRowModel>().ToList();
+        //                }
+        //                catch (Exception exception)
+        //                {
+        //                    sfm[i] = new List<SingleRowModel>();
+        //                    System.Windows.MessageBox.Show($"{files[i]} cannot be converted");
+        //                    continue;
+        //                }
+        //            }
+        //        }
+        //        catch (IOException exception)
+        //        {
+        //            System.Windows.MessageBox.Show($"{files[i]} is being used by another process!!!");
+        //            continue;
+        //        }
+
+        //        // setup and add category
+        //        if (sfm[i].Count > 0)
+        //        {
+        //            for (int j = 0; j < sfm[i].Count; j++)
+        //            {
+
+        //                string strKey = sfm[i][j].KeyName;
+        //                if (probe.ContainsKey(strKey))
+        //                {
+        //                    probe[strKey].Add((sfm[i][j].TimeFromPrev, sfm[i][j].TimePressed));
+        //                }
+        //                else
+        //                {
+        //                    probe[strKey] = new List<(double flight, double dwell)>()
+        //                    {
+        //                        (sfm[i][j].TimeFromPrev, sfm[i][j].TimePressed)
+        //                    };
+        //                }
+        //            }
+        //        }
+
+        //        TrainSample? ts = this.AddTrainSample(probe, probeName);
+        //        if (ts != null) trainSamples.Add(ts);
+
+        //    }
+        //}
 
     }
 }

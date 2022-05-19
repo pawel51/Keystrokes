@@ -28,13 +28,15 @@ namespace Keystrokes
                 .Build();
             _host.Start();
 
-            MainWindowFrame.Content = _host.Services.GetRequiredService<KeystrokeView>();
+            //MainWindowFrame.Content = _host.Services.GetRequiredService<KeystrokeView>();
+            MainWindowFrame.Content = _host.Services.GetRequiredService<ClassificationView>();
             NavBtn0.IsChecked = true;
         }
 
         private void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<KeystrokeView>();
+            services.AddSingleton<ClassificationView>();
             services.AddTransient<IKeystrokeService, KeystrokeService>();
             services.AddTransient<IGraphService, GraphService>();
             services.AddTransient<IKnnClassificatorService, KnnClassificationService>();

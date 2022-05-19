@@ -1,0 +1,132 @@
+﻿<UserControl x:Class="Keystrokes.Views.ClassificationView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Keystrokes.Views"
+        mc:Ignorable="d" Height="980" Width="1800"
+        Background="White">
+    <UserControl.Resources>
+        <Style x:Key="ParameterTxt" TargetType="TextBlock">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+        <Style x:Key="ParameterComBox" TargetType="ComboBox">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+        <Style x:Key="ParameterTxtBox" TargetType="TextBox">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="14*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition />
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+
+            <TextBlock Text="Algorithm" Grid.Row="0" Grid.Column="0" Style="{StaticResource ParameterTxt}"/>
+            <ComboBox ItemsSource="{Binding AlgorithmList}" 
+                      SelectedItem="{Binding SelectedAlgorithm}" 
+                      SelectedIndex="0" 
+                      Grid.Column="0" 
+                      Grid.Row="1"
+                      Style="{StaticResource ParameterComBox}"></ComboBox>
+
+
+            <TextBlock Text="Metric" 
+                       Grid.Row="0" 
+                       Grid.Column="1"  
+                       Style="{StaticResource ParameterTxt}"
+                       Visibility="{Binding MetricVisibility}"/>
+            <ComboBox ItemsSource="{Binding MetricsList}" 
+                      SelectedItem="{Binding SelectedMetric}" 
+                      SelectedIndex="0" 
+                      Grid.Column="1" 
+                      Grid.Row="1" 
+                      Style="{StaticResource ParameterComBox}"
+                      Visibility="{Binding MetricVisibility}"></ComboBox>
+
+            
+            <TextBlock Text="K parameter" 
+                       Grid.Row="0" 
+                       Grid.Column="2" 
+                       Style="{StaticResource ParameterTxt}"
+                       Visibility="{Binding KParamVisibility}"/>
+            <TextBox Grid.Row="1" 
+                     Grid.Column="2" 
+                     Text="{Binding KParam}" 
+                     Style="{StaticResource ParameterTxtBox}"
+                     Visibility="{Binding KParamVisibility}"></TextBox>
+
+            
+            <TextBlock Text="Probability Threshold" 
+                       Grid.Row="0" 
+                       Grid.Column="3" 
+                       Style="{StaticResource ParameterTxt}"
+                       Visibility="{Binding ProbThresholdVisibility}"/>
+            <TextBox Grid.Row="1" Grid.Column="3" 
+                     Text="{Binding ProbThreshold}" 
+                     Style="{StaticResource ParameterTxtBox}"
+                     Visibility="{Binding ProbThresholdVisibility}"></TextBox>
+
+            
+            <TextBlock Text="Flight distance" 
+                       Grid.Row="0" 
+                       Grid.Column="4" 
+                       Style="{StaticResource ParameterTxt}"
+                       Visibility="{Binding FlightTimeVisibility}"/>
+            <TextBox Grid.Row="1" 
+                     Grid.Column="4" 
+                     Text="{Binding FlightBayes}" 
+                     Style="{StaticResource ParameterTxtBox}"
+                     Visibility="{Binding FlightTimeVisibility}"></TextBox>
+
+            
+            <TextBlock Text="Dwell distance" 
+                       Grid.Row="0" 
+                       Grid.Column="5" 
+                       Style="{StaticResource ParameterTxt}"
+                       Visibility="{Binding DwellTimeVisibility}"/>
+            <TextBox Grid.Row="1" 
+                     Grid.Column="5" 
+                     Text="{Binding DwellBayes}" 
+                     Style="{StaticResource ParameterTxtBox}"
+                     Visibility="{Binding DwellTimeVisibility}"></TextBox>
+
+        </Grid>
+
+        <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2">
+            <ScrollViewer>
+                <Border BorderThickness="2" BorderBrush="Black" Height="800" Margin="20" >
+                    <Canvas Background="LightGray">
+
+                    </Canvas>
+                </Border>
+                
+            </ScrollViewer>
+            
+        </StackPanel>
+        
+    </Grid>
+</UserControl>
