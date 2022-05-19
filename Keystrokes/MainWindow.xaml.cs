@@ -1,11 +1,13 @@
 ﻿using Keystrokes.Views;
 using Keystrokes.Services;
+using Keystrokes.Services.Impl;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using KeystrokesData;
+using Keystrokes.Services.Interfaces;
 
 namespace Keystrokes
 {
@@ -35,6 +37,7 @@ namespace Keystrokes
             services.AddSingleton<KeystrokeView>();
             services.AddTransient<IKeystrokeService, KeystrokeService>();
             services.AddTransient<IGraphService, GraphService>();
+            services.AddTransient<IKnnClassificatorService, KnnClassificationService>();
             services.AddDbContext<KeystrokesDbContext>(options =>
             {
                 options.UseNpgsql("Server=localhost;Database=keystrokes_dev;Port=5432;User Id=postgres;Password=12345");

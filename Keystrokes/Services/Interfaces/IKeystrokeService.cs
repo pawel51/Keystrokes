@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Keystrokes.Services
+namespace Keystrokes.Services.Interfaces
 {
     public interface IKeystrokeService
     {
         public TrainSample? AddTrainSample(Dictionary<string, List<(double flight, double dwell)>> probe, string categoryName);
+
+        public TestSample? AddTestSample(Dictionary<string, List<(double flight, double dwell)>> probe, string categoryName);
 
         public List<TrainSample> GetTrainSamples();
 

@@ -1,6 +1,6 @@
 ﻿using Keystrokes.Models;
 using Keystrokes.Models.KnnGraph;
-using Keystrokes.Services;
+using Keystrokes.Services.Interfaces;
 using KeystrokesData.Entities;
 using KeystrokesData.Enums;
 using System;

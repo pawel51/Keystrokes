@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Keystrokes.Services
+namespace Keystrokes.Services.Interfaces
 {
     public interface IGraphService
     {
@@ -19,6 +19,10 @@ namespace Keystrokes.Services
         public bool UpdateGraphToDb(KnnGraph graph, DistanceMetric metric);
 
         public bool UpdateGraph(TrainSample trainSample, KnnGraph knnGraph);
+
+        public KnnNode TrainSampleToKnnNode(TrainSample trainSample);
+
+        public KnnNode TestSampleToKnnNode(TestSample testSample);
 
     }
 }

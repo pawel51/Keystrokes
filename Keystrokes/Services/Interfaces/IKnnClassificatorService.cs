@@ -51,8 +51,6 @@ namespace Keystrokes.Services.Interfaces
         /// Krok 1.
         /// sortuje próbki ze względu na dwell time i dzieli na k (tyle ile klas w grafie) równych grup
         /// klasyfikuje próbkę ze względu na dwell time do odpowiedniej grupy
-        /// sortuje próbki ze względu na flight time i dzieli na k (tyle ile klas w grupie) równych podgrup
-        /// klasyfikuje próbkę ze względu na flight time do odpowiedniej podgrupy
         /// 
         /// Krok 2.
         /// zlicza jakie jest prawdopodobieństwo przynależności do pozostałych klas
@@ -62,7 +60,7 @@ namespace Keystrokes.Services.Interfaces
         /// <param name="graph"></param>
         /// <param name="node"></param>
         /// <returns>Zwraca listę klas i prawdopodobieństw przynależności do każdej z nich</returns>
-        public List<(string klass, double prob)> treeDecisions(KnnGraph graph, KnnNode node, int probThreshold);
+        public Dictionary<string, double> treeDecisions(KnnGraph graph, KnnNode node, double probThreshold);
 
 
     }

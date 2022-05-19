@@ -4,6 +4,7 @@ using Keystrokes.Helpers;
 using Keystrokes.Models;
 using Keystrokes.Models.KnnGraph;
 using Keystrokes.Services;
+using Keystrokes.Services.Interfaces;
 using Keystrokes.ViewModels;
 using KeystrokesData;
 using KeystrokesData.Entities;
@@ -33,8 +34,21 @@ namespace Keystrokes.Views
     /// </summary>
     public partial class KeystrokeView : UserControl
     {
+        public KeystrokeView(IKeystrokeService keystrokeService, IGraphService graphService, IKnnClassificatorService classificationService)
+        {
+            InitializeComponent();
+            this.keystrokeService = keystrokeService;
+            this.graphService = graphService;
+            this.classificationService = classificationService;
+            DataContext = new KeystrokeViewModel(keystrokeService, graphService);
+            Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File(@"C:\logs\keystrokes\log.log").WriteTo.Console().CreateLogger();
+            Log.Information("Logger created");
+        }
+
+
         private readonly IKeystrokeService keystrokeService;
         private readonly IGraphService graphService;
+        private readonly IKnnClassificatorService classificationService;
         private KeystrokesDbContext context;
 
 
@@ -98,19 +112,11 @@ namespace Keystrokes.Views
 
         private Dictionary<string, List<(double flight, double dwell)>> probe
             = new Dictionary<string, List<(double flight, double dwell)>>();
-        public KeystrokeView(IKeystrokeService keystrokeService, IGraphService graphService)
-        {
-            InitializeComponent();
-            this.keystrokeService = keystrokeService;
-            this.graphService = graphService;
-            DataContext = new KeystrokeViewModel(keystrokeService, graphService);
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File(@"C:\logs\log.log").WriteTo.Console().CreateLogger();
-            Log.Information("Logger created");
-        }
+        
 
         private void MyTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            Log.Information("down");
+            //Log.Information("down");
 
             if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
                 return;
@@ -130,7 +136,7 @@ namespace Keystrokes.Views
 
         private void MyTextBox_PreviewKeyUp(object sender, KeyEventArgs e)
         {
-            Log.Information("up");
+            //Log.Information("up");
 
             if (!tDict.ContainsKey(e.Key)) return;
 
@@ -177,6 +183,19 @@ namespace Keystrokes.Views
                 MessageBox.Show("Couldn't add new training sample check if category already exists.");
             }
 
+        }
+
+        private void Classify_BtnClicked(object sender, RoutedEventArgs e)
+        {
+            KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
+            TestSample testSample = keystrokeService.AddTestSample(probe, CategoryNameTxtBox.Text);
+            KnnNode knnNode = graphService.TestSampleToKnnNode(testSample);
+            Dictionary<string, double> keyProbList = classificationService.treeDecisions(dc.GraphModel, knnNode, 0.4);
+            keyProbList.ToList().ForEach(item =>
+            {
+                Log.Information($"Test Sample '{testSample.Category}' was classified to\n{item.Key} with probability = '{item.Value}'\n");
+            });
+            
         }
 
         private void CreateKnnGraph_BtnClicked(object sender, RoutedEventArgs e)

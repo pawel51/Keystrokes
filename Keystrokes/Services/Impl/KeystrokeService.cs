@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Keystrokes.Models;
+using Keystrokes.Services.Interfaces;
 using KeystrokesData;
 using KeystrokesData.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Keystrokes.Services
+namespace Keystrokes.Services.Impl
 {
     public class KeystrokeService : IKeystrokeService
     {
@@ -78,6 +79,59 @@ namespace Keystrokes.Services
                 context.TrainData.Add(sample);
             }
             
+            context.SaveChanges();
+
+            return sample;
+        }
+
+        public TestSample? AddTestSample(Dictionary<string, List<(double flight, double dwell)>> probe, string categoryName)
+        {
+            // { "znak": (mean flight, mean dwell)
+            Dictionary<string, (double flight, double dwell)> meanProbe
+                = new Dictionary<string, (double flight, double dwell)>();
+
+            // convert to meanProbe
+            probe.ToList().ForEach(p =>
+            {
+                double sumFlight = 0, sumDwell = 0;
+                p.Value.ForEach((item) =>
+                {
+                    sumFlight += item.flight;
+                    sumDwell += item.dwell;
+                });
+                double meanFlight = sumFlight / p.Value.Count;
+                double meanDwell = sumDwell / p.Value.Count;
+                meanProbe.Add(p.Key, (meanFlight, meanDwell));
+            });
+
+            List<SingleProbe> keyList = new List<SingleProbe>();
+
+            meanProbe.ToList().ForEach(p =>
+            {
+                keyList.Add(new SingleProbe()
+                {
+                    AsciiSign = p.Key,
+                    Dwell = p.Value.dwell,
+                    Flight = p.Value.flight
+                });
+            });
+
+            TestSample sample = new TestSample()
+            {
+                Category = categoryName,
+                Probes = keyList
+            };
+
+            // check if category exists
+            if (context.TestData.FirstOrDefault(e => e.Category == categoryName) != null)
+            {
+                context.TestData.Update(sample);
+            }
+            else
+            {
+                context.TestData.Add(sample);
+            }
+
             context.SaveChanges();
 
             return sample;

@@ -33,9 +33,25 @@
         </Border>
         
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
-            <Button Grid.Row="1" Click="StartWritting_BtnClicked" Width="100" Height="25" Content="Start Writting" Margin="5"/>
-            <Button Grid.Row="1" Click="Train_BtnClicked" Width="100" Height="25" Content="Save as traininig" Margin="5"/>
-            <Button Grid.Row="1" Click="CreateKnnGraph_BtnClicked" Width="100" Height="25" Content="Create Knn Graph" Margin="5"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Grid.Row="0" Grid.Column="0" Click="StartWritting_BtnClicked" Width="100" Height="25" Content="Start Writting" Margin="5"/>
+                <Button Grid.Row="0" Grid.Column="1" Click="Train_BtnClicked" Width="100" Height="25" Content="Save as traininig" Margin="5"/>
+                <Button Grid.Row="0" Grid.Column="2" Click="CreateKnnGraph_BtnClicked" Width="100" Height="25" Content="Create Knn Graph" Margin="5"/>
+
+                <Button Grid.Row="1" Grid.Column="0" Click="Classify_BtnClicked" Width="100" Height="25" Content="Classify" Margin="5"/>
+            </Grid>
+            
+            
             <!--<Button Grid.Row="1" Click="Test_BtnClicked" Width="100" Height="25" Content="Test" Margin="5"/>-->
         </StackPanel>
         

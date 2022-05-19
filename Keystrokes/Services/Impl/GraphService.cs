@@ -1,4 +1,5 @@
 ﻿using Keystrokes.Models.KnnGraph;
+using Keystrokes.Services.Interfaces;
 using KeystrokesData;
 using KeystrokesData.Entities;
 using KeystrokesData.Enums;
@@ -9,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Keystrokes.Services
+namespace Keystrokes.Services.Impl
 {
     public class GraphService : IGraphService
     {
@@ -261,8 +262,19 @@ namespace Keystrokes.Services
         }
 
 
+        public KnnNode TrainSampleToKnnNode(TrainSample trainSample)
+        {
+            Dictionary<string, (double dwell, double flight)> keystrokes = new Dictionary<string, (double dwell, double flight)>();
 
+            return TrainSampleToKnnNode(trainSample, keystrokes);
+        }
 
+        public KnnNode TestSampleToKnnNode(TestSample testSample)
+        {
+            Dictionary<string, (double dwell, double flight)> keystrokes = new Dictionary<string, (double dwell, double flight)>();
+
+            return TestSampleToKnnNode(testSample, keystrokes);
+        }
 
         public bool UpdateGraph(TrainSample trainSample, KnnGraph graph)
         {
@@ -270,20 +282,9 @@ namespace Keystrokes.Services
 
             Dictionary<string, (double dwell, double flight)> keystrokes = new Dictionary<string, (double dwell, double flight)>();
 
-            if (trainSample.Probes == null) return false;
-            trainSample.Probes.ForEach(probe =>
-            {
-                keystrokes.Add(probe.AsciiSign, (probe.Dwell, probe.Flight));
-            });
-
-            if (trainSample.Category == null)
-                trainSample.Category = "undefined";
-
-            KnnNode newNode = new KnnNode()
-            {
-                Category = trainSample.Category,
-                Keystrokes = keystrokes
-            };
+            KnnNode newNode = TrainSampleToKnnNode(trainSample, keystrokes);
+            if (newNode == null) return false;
+            
 
             graph.Nodes.ToList().ForEach(node =>
             {
@@ -300,8 +301,44 @@ namespace Keystrokes.Services
             {
                 graph.Nodes.Add(trainSample.Category, newNode);
             }
-                
+
             return true;
+        }
+
+        private KnnNode TrainSampleToKnnNode(TrainSample trainSample, Dictionary<string, (double dwell, double flight)> keystrokes)
+        {
+            if (trainSample.Probes == null) return null;
+            trainSample.Probes.ForEach(probe =>
+            {
+                keystrokes.Add(probe.AsciiSign, (probe.Dwell, probe.Flight));
+            });
+
+            if (trainSample.Category == null)
+                trainSample.Category = "undefined";
+
+            return new KnnNode()
+            {
+                Category = trainSample.Category,
+                Keystrokes = keystrokes
+            };
+        }
+
+        private KnnNode TestSampleToKnnNode(TestSample testSample, Dictionary<string, (double dwell, double flight)> keystrokes)
+        {
+            if (testSample.Probes == null) return null;
+            testSample.Probes.ForEach(probe =>
+            {
+                keystrokes.Add(probe.AsciiSign, (probe.Dwell, probe.Flight));
+            });
+
+            if (testSample.Category == null)
+                testSample.Category = "undefined";
+
+            return new KnnNode()
+            {
+                Category = testSample.Category,
+                Keystrokes = keystrokes
+            };
         }
 
 
