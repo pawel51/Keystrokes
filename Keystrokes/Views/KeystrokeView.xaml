@@ -14,7 +14,8 @@
             <RowDefinition Height="200"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition />
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Row="0" Margin="20">
@@ -48,12 +49,21 @@
                   AutoGeneratingColumn="TrainData_AutoGeneratingColumn" VerticalScrollBarVisibility="Visible" Height="400">
                 </DataGrid>
             </StackPanel>
-            
         </GroupBox>
-        
-        
-        
-        
-        
+
+        <GroupBox Header="Test samples" Grid.Column="2" Width="200" FontSize="22" HorizontalAlignment="Left" Margin="10,20" Height="450" Grid.RowSpan="6" VerticalAlignment="Top">
+            <StackPanel>
+                <Button Content="Read Test Data" Click="ReadTestData_Click" Width="100" Height="22" FontSize="14" Margin="5"/>
+                <DataGrid ItemsSource="{Binding TestSamples}" AutoGenerateColumns="True"  HorizontalScrollBarVisibility="Visible" FontSize="14" IsReadOnly="True"
+                  AutoGeneratingColumn="TrainData_AutoGeneratingColumn" VerticalScrollBarVisibility="Visible" Height="400">
+                </DataGrid>
+            </StackPanel>
+        </GroupBox>
+
+
+
+
+
+
     </Grid>
 </UserControl>

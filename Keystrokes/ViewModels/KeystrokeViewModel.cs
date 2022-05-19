@@ -13,7 +13,7 @@ using System.Windows.Media;
 
 namespace Keystrokes.ViewModels
 {
-    class KeystrokeViewModel : BaseViewModel
+    public class KeystrokeViewModel : BaseViewModel
     {
 
         private string _testSentence1 = "Apollo 11 was the first space flight that landed first two people on the moon";
@@ -81,6 +81,14 @@ namespace Keystrokes.ViewModels
             set { trainSamples = value; OnPropertyChanged(nameof(TrainingSamples)); }
         }
 
+        private ObservableCollection<TestSample> testSamples;
+
+        public ObservableCollection<TestSample> TestSamples
+        {
+            get { return testSamples; }
+            set { testSamples = value; OnPropertyChanged(nameof(TestSamples)); }
+        }
+
         private List<SingleRowModel> keyStrokeData = new List<SingleRowModel>();
 
         public List<SingleRowModel> KeyStrokeData
@@ -97,6 +105,9 @@ namespace Keystrokes.ViewModels
             
             
             TrainingSamples = new ObservableCollection<TrainSample>(service.GetTrainSamples());
+            TestSamples = new ObservableCollection<TestSample>(service.GetTestSamples());
+
+
             
             GraphModel = graphService.GetKnnGraph();
 

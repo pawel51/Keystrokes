@@ -12,7 +12,9 @@ namespace Keystrokes.Services
         public TrainSample? AddTrainSample(Dictionary<string, List<(double flight, double dwell)>> probe, string categoryName);
 
         public List<TrainSample> GetTrainSamples();
+        public List<TestSample> GetTestSamples();
 
         public List<TrainSample> ReadTreningData(string testDataFileName);
+        public List<TestSample> ReadTestingData(string testDataFileName);
     }
 }

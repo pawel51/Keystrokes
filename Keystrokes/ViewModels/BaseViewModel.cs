@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Keystrokes.ViewModels
 {
-    internal class BaseViewModel : INotifyPropertyChanged
+    public class BaseViewModel : INotifyPropertyChanged
     {
         protected int __MOD = 3; // in release can be lower (performance of plots)
 
