@@ -4,8 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Keystrokes.Views"
-        mc:Ignorable="d" Height="980" Width="1800"
-        Background="White">
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        mc:Ignorable="d" 
+        Background="LightGray">
     <UserControl.Resources>
         <Style x:Key="ParameterTxt" TargetType="TextBlock">
             <Setter Property="Margin" Value="2"/>
@@ -20,14 +21,15 @@
             <Setter Property="FontSize" Value="20"/>
         </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid Margin="20" >
         <Grid.RowDefinitions>
             <RowDefinition/>
-            <RowDefinition Height="14*"/>
+            <RowDefinition Height="12*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="1.2*"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="0">
@@ -36,8 +38,8 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition />
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="1.2*"/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -46,20 +48,20 @@
 
 
             <TextBlock Text="Algorithm" Grid.Row="0" Grid.Column="0" Style="{StaticResource ParameterTxt}"/>
-            <ComboBox ItemsSource="{Binding AlgorithmList}" 
+            <ComboBox ItemsSource="{Binding AlgorithmsList}" 
                       SelectedItem="{Binding SelectedAlgorithm}" 
                       SelectedIndex="0" 
                       Grid.Column="0" 
                       Grid.Row="1"
                       Style="{StaticResource ParameterComBox}"></ComboBox>
-
+            
 
             <TextBlock Text="Metric" 
                        Grid.Row="0" 
                        Grid.Column="1"  
                        Style="{StaticResource ParameterTxt}"
                        Visibility="{Binding MetricVisibility}"/>
-            <ComboBox ItemsSource="{Binding MetricsList}" 
+            <ComboBox ItemsSource="{Binding MetricList}" 
                       SelectedItem="{Binding SelectedMetric}" 
                       SelectedIndex="0" 
                       Grid.Column="1" 
@@ -82,10 +84,13 @@
             
             <TextBlock Text="Probability Threshold" 
                        Grid.Row="0" 
-                       Grid.Column="3" 
+                       Grid.Column="2" 
+                       Grid.ColumnSpan="2"
                        Style="{StaticResource ParameterTxt}"
                        Visibility="{Binding ProbThresholdVisibility}"/>
-            <TextBox Grid.Row="1" Grid.Column="3" 
+            <TextBox Grid.Row="1" 
+                     Grid.Column="2" 
+                     Grid.ColumnSpan="2"
                      Text="{Binding ProbThreshold}" 
                      Style="{StaticResource ParameterTxtBox}"
                      Visibility="{Binding ProbThresholdVisibility}"></TextBox>
@@ -93,11 +98,11 @@
             
             <TextBlock Text="Flight distance" 
                        Grid.Row="0" 
-                       Grid.Column="4" 
+                       Grid.Column="2" 
                        Style="{StaticResource ParameterTxt}"
                        Visibility="{Binding FlightTimeVisibility}"/>
             <TextBox Grid.Row="1" 
-                     Grid.Column="4" 
+                     Grid.Column="2" 
                      Text="{Binding FlightBayes}" 
                      Style="{StaticResource ParameterTxtBox}"
                      Visibility="{Binding FlightTimeVisibility}"></TextBox>
@@ -105,22 +110,42 @@
             
             <TextBlock Text="Dwell distance" 
                        Grid.Row="0" 
-                       Grid.Column="5" 
+                       Grid.Column="3" 
                        Style="{StaticResource ParameterTxt}"
                        Visibility="{Binding DwellTimeVisibility}"/>
             <TextBox Grid.Row="1" 
-                     Grid.Column="5" 
+                     Grid.Column="3" 
                      Text="{Binding DwellBayes}" 
                      Style="{StaticResource ParameterTxtBox}"
                      Visibility="{Binding DwellTimeVisibility}"></TextBox>
 
         </Grid>
 
-        <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="2">
-            <ScrollViewer>
-                <Border BorderThickness="2" BorderBrush="Black" Height="800" Margin="20" >
-                    <Canvas Background="LightGray">
+        <Grid Background="White" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Width="800" Height="400">
+            <lvc:CartesianChart  Series="{Binding AccuracySeries}" LegendLocation="Top">
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis Title="Algorithm" Labels="{Binding Labels}"></lvc:Axis>
+                </lvc:CartesianChart.AxisX>
+                <lvc:CartesianChart.AxisY>
+                    <lvc:Axis Title="Accuracy" LabelFormatter="{Binding Formatter}"></lvc:Axis>
+                </lvc:CartesianChart.AxisY>
+            </lvc:CartesianChart>
+        </Grid>
 
+        <GroupBox Grid.Column="1"  Header="Test samples" Width="180" FontSize="22" HorizontalAlignment="Left" Margin="10,20" Height="750" Grid.RowSpan="6" VerticalAlignment="Top">
+            <StackPanel>
+                <Button Content="Read Test Data" Click="ReadTestData_Click" Width="100" Height="22" FontSize="14" Margin="5"/>
+                <Button Content="Classify Selected" Click="Classify_BtnClicked" Width="100" Height="22" FontSize="14" Margin="5"/>
+                <DataGrid ItemsSource="{Binding TestSamples}"  AutoGenerateColumns="True"  HorizontalScrollBarVisibility="Visible" FontSize="14" IsReadOnly="True"
+                  AutoGeneratingColumn="TrainData_AutoGeneratingColumn" VerticalScrollBarVisibility="Visible" Height="650">
+                </DataGrid>
+            </StackPanel>
+        </GroupBox>
+
+        <StackPanel Grid.Column="2" Grid.Row="0" Grid.RowSpan="2">
+            <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" CanContentScroll="True" Width="700" Height="800" >
+                <Border x:Name="canvasBorder" BorderThickness="2" BorderBrush="Black" Margin="20">
+                    <Canvas x:Name="canvas" Background="LightGray" Width="5000" Height="5000">
                     </Canvas>
                 </Border>
                 

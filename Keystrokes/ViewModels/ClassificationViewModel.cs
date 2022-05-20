@@ -1,4 +1,10 @@
-﻿using KeystrokesData.Enums;
+﻿using Keystrokes.Models.KnnGraph;
+using Keystrokes.Services.Interfaces;
+using KeystrokesData.Entities;
+using KeystrokesData.Enums;
+using LiveCharts;
+using LiveCharts.Defaults;
+using LiveCharts.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,13 +12,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 
 namespace Keystrokes.ViewModels
 {
     public class ClassificationViewModel : BaseViewModel
     {
-        public ClassificationViewModel()
+        
+        public ClassificationViewModel(IKeystrokeService keystrokeService, IGraphService graphService, IKnnClassificatorService classService)
         {
+            this.classService = classService;
+            this.graphService = graphService;
+            this.keystrokeService = keystrokeService;
+
+
             MetricList = new ObservableCollection<DistanceMetric>();
             MetricList.Add(DistanceMetric.HAMING);
             MetricList.Add(DistanceMetric.EUCLIDIAN);
@@ -25,9 +38,32 @@ namespace Keystrokes.ViewModels
             AlgorithmsList.Add(Algorithm.KNN);
             AlgorithmsList.Add(Algorithm.KMEANS);
             AlgorithmsList.Add(Algorithm.BAYES);
-            AlgorithmsList.Add(Algorithm.DECISIONTREES);
+            AlgorithmsList.Add(Algorithm.DECISSIONTREES);
+
+            AccuracyValues = new ChartValues<ObservableValue>();
+
+            AccuracySeries = new SeriesCollection
+            {
+                new ColumnSeries
+                {
+                    Title = "Accuracy",
+                    Values = AccuracyValues,
+                    Fill = Brushes.Red
+                }
+            };
+
+            Labels = new[] { "KNN", "KMEANS", "BAYES", "DECISSIONTREES" };
+            Formatter = value => value.ToString("N");
+
+            double[] accVals = new double[4] { 0.3, 0.4, 0.555, 0.69 };
+            AccuracySeries[0].Values.AddRange(accVals.ToList().Select(v => new ObservableValue(v)));
+
+            TestSamples = new ObservableCollection<TestSample>(keystrokeService.GetTestSamples());
+            GraphModel = graphService.GetKnnGraph();
 
         }
+
+        #region COLLECTIONS AND SELECTED VALUES
 
         private ObservableCollection<Algorithm> algorithmsList;
 
@@ -69,7 +105,7 @@ namespace Keystrokes.ViewModels
                         FlightTimeVisibility = Visibility.Visible;
                         DwellTimeVisibility = Visibility.Visible;
                         break;
-                    case Algorithm.DECISIONTREES:
+                    case Algorithm.DECISSIONTREES:
                         MetricVisibility = Visibility.Visible;
                         KParamVisibility = Visibility.Hidden;
                         ProbThresholdVisibility = Visibility.Visible;
@@ -90,6 +126,8 @@ namespace Keystrokes.ViewModels
             set { metricList = value; OnPropertyChanged(nameof(MetricList)); }
         }
 
+        
+
         private DistanceMetric selectedMetric;
 
         public DistanceMetric SelectedMetric
@@ -97,6 +135,10 @@ namespace Keystrokes.ViewModels
             get { return selectedMetric; }
             set { selectedMetric = value; OnPropertyChanged(nameof(SelectedMetric)); }
         }
+
+        #endregion
+
+        #region PARAMETERS
 
         private int kParam = 3;
 
@@ -129,6 +171,10 @@ namespace Keystrokes.ViewModels
             get { return probThreshold; }
             set { probThreshold = value; OnPropertyChanged(nameof(ProbThreshold)); }
         }
+
+        #endregion
+
+        #region VISIBILITY
 
         private Visibility metricVisibility = Visibility.Visible;
 
@@ -170,5 +216,48 @@ namespace Keystrokes.ViewModels
             set { probThresholdVisibility = value; OnPropertyChanged(nameof(ProbThresholdVisibility)); }
         }
 
+        #endregion
+
+        #region CLASSIFICATION
+
+        public KnnGraph GraphModel { get; set; }
+
+        private ObservableCollection<TestSample> testSamples;
+
+        public ObservableCollection<TestSample> TestSamples
+        {
+            get { return testSamples; }
+            set { testSamples = value; OnPropertyChanged(nameof(TestSamples)); }
+        }
+
+        #endregion
+
+        #region CHART
+
+        public Func<double, string> Formatter { get; set; }
+
+        public string[] Labels { get; set; }
+
+        private SeriesCollection accuracySeries;
+
+        public SeriesCollection AccuracySeries
+        {
+            get { return accuracySeries; }
+            set { accuracySeries = value; OnPropertyChanged(nameof(AccuracySeries)); }
+        }
+
+
+        private ChartValues<ObservableValue> accuracyValues;
+        private readonly IKnnClassificatorService classService;
+        private readonly IGraphService graphService;
+        private readonly IKeystrokeService keystrokeService;
+
+        public ChartValues<ObservableValue> AccuracyValues
+        {
+            get { return accuracyValues; }
+            set { accuracyValues = value; OnPropertyChanged(nameof(AccuracyValues)); }
+        }
+
+        #endregion
     }
 }

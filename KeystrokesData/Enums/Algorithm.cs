@@ -11,6 +11,6 @@ namespace KeystrokesData.Enums
         KNN = 1,
         KMEANS = 2,
         BAYES = 3,
-        DECISIONTREES = 4
+        DECISSIONTREES = 4
     }
 }

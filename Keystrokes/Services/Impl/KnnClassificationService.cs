@@ -1,38 +1,45 @@
-﻿using Keystrokes.Models.KnnGraph;
+﻿using Keystrokes.Helpers;
+using Keystrokes.Models;
+using Keystrokes.Models.KnnGraph;
 using Keystrokes.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace Keystrokes.Services.Impl
 {
     public class KnnClassificationService : IKnnClassificatorService
     {
-        public List<string> findMostCommonKnn(KnnGraph graph, KnnNode node, int k)
+        public List<string> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k)
         {
             throw new NotImplementedException();
         }
 
-        public List<(string klass, double prob)> findMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2)
+        public List<(string klass, double prob)> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2)
         {
             throw new NotImplementedException();
         }
 
-        public List<string> findNearestMean(KnnGraph graph, KnnNode node, int k)
+        public List<string> FindNearestMean(KnnGraph graph, KnnNode node, int k)
         {
             throw new NotImplementedException();
         }
 
 
         internal class Group{
+
+            public int Id { get; set; }
             public double Min { get; set; }
             public double Max { get; set; }
             public List<(string klass, double value)> Items { get; set; }
         }
 
-        public Dictionary<string, double> treeDecisions(KnnGraph graph, KnnNode node, double probThreshold)
+        public Dictionary<string, double> TreeDecisions(KnnGraph graph, KnnNode node, double probThreshold, Canvas canvas)
         {
             
 
@@ -46,12 +53,16 @@ namespace Keystrokes.Services.Impl
             meanDwellList.Sort((x, y) => x.dwell.CompareTo(y.dwell));
             meanFlightList.Sort((x, y) => x.flight.CompareTo(y.flight));
 
+
+            TreeDairy dairyDwell = new TreeDairy();
+            TreeDairy dairyFlight = new TreeDairy();
+
             int maxDeepLevel = 3;
 
             int deep = 1;
             // devide on even groups
-            Dictionary<string, double> klassProbList = DoDecisionTree(node, probThreshold, klasses, meanDwellList, maxDeepLevel, deep);
-            Dictionary<string, double> klassProbList2 = DoDecisionTree(node, probThreshold, klasses, meanFlightList, maxDeepLevel, deep);
+            Dictionary<string, double> klassProbList = DoDecisionTree(node, probThreshold, klasses, meanDwellList, maxDeepLevel, deep, dairyDwell);
+            Dictionary<string, double> klassProbList2 = DoDecisionTree(node, probThreshold, klasses, meanFlightList, maxDeepLevel, deep, dairyFlight);
 
             Dictionary<string, double> concatenatedDict = new Dictionary<string, double>();
             int dwellTimeMoreImportantRate = 2;
@@ -74,22 +85,30 @@ namespace Keystrokes.Services.Impl
                 }
             });
 
-
+            VisualiseDairy(dairyDwell, canvas);
 
 
             return klassProbList;
         }
 
-        private Dictionary<string, double> DoDecisionTree(KnnNode node, double probThreshold, Dictionary<string, int> klasses, List<(string key, double dwell)> meanValueList, int maxDeepLevel, int deep)
+        
+
+        private Dictionary<string, double> DoDecisionTree(KnnNode node, double probThreshold, Dictionary<string, int> klasses, List<(string key, double dwell)> meanValueList, int maxDeepLevel, int deep, TreeDairy dairy)
         {
             // prepare returning list
             Dictionary<string, double> klassProbList = new Dictionary<string, double>();
 
-            Dictionary<int, Group> groups = DevideOnEvenGroups(klasses, meanValueList, deep);
+            
+
+            Dictionary<int, Group> groups = DevideOnEvenGroups(klasses, meanValueList);
 
             while (deep < maxDeepLevel)
             {
+
+
                 Group pickedGroup = ClassifyToGroup(groups, node);
+
+                dairy.SplitList.Add(deep, WriteToDairy(groups, pickedGroup));
 
                 var grouped = pickedGroup.Items.GroupBy(x => x.klass).OrderByDescending(group => group.Count());
 
@@ -106,7 +125,7 @@ namespace Keystrokes.Services.Impl
                 // prepare for next split decission
                 deep++;
                 klasses = GetKlassesInGroup(pickedGroup);
-                groups = DevideOnEvenGroups(klasses, pickedGroup.Items, deep);
+                groups = DevideOnEvenGroups(klasses, pickedGroup.Items);
 
                 // if it is too deep
                 if (deep >= maxDeepLevel)
@@ -120,6 +139,29 @@ namespace Keystrokes.Services.Impl
                 }
             }
             return klassProbList;
+        }
+
+        private List<TreeDairy.Split> WriteToDairy(Dictionary<int, Group> groups, Group pickedGroup)
+        {
+            List<TreeDairy.Split> splitList = new List<TreeDairy.Split>();
+            int groupNumber = 0;
+            groups.ToList().ForEach(groupItem =>
+            {
+                TreeDairy.Split split = new TreeDairy.Split()
+                {
+                    GroupId = groupNumber++,
+                    ClassProbList = new Dictionary<string, double>(),
+                    WasPicked = groupItem.Value.Id == pickedGroup.Id ? true : false
+                };
+                var groupedItem = groupItem.Value.Items.GroupBy(x => x.klass).OrderByDescending(group => group.Count());
+                groupedItem.ToList().ForEach(g =>
+                {
+                    if (!split.ClassProbList.ContainsKey(g.Key))
+                        split.ClassProbList.Add(g.Key, Math.Round((double)groupItem.Value.Items.Where(e => e.klass == g.Key).Count() / groupItem.Value.Items.Count(), 2));
+                });
+                splitList.Add(split);
+            });
+            return splitList;
         }
 
         private Group ClassifyToGroup(Dictionary<int, Group> groups, KnnNode node)
@@ -170,7 +212,7 @@ namespace Keystrokes.Services.Impl
             }
         }
 
-        private Dictionary<int, Group> DevideOnEvenGroups(Dictionary<string, int> klasses, List<(string key, double dwell)> meanDwellList, int deep)
+        private Dictionary<int, Group> DevideOnEvenGroups(Dictionary<string, int> klasses, List<(string key, double dwell)> meanDwellList)
         {
             Dictionary<int, Group> groups = new Dictionary<int, Group>();
 
@@ -181,6 +223,7 @@ namespace Keystrokes.Services.Impl
             {
                 groups.Add(classId, new Group()
                 {
+                    Id = classId,
                     Items = new List<(string klass, double value)>(),
                     Min = 100000,
                     Max = 0,
@@ -266,6 +309,81 @@ namespace Keystrokes.Services.Impl
             });
 
             return klasses;
+        }
+
+        
+
+        private void VisualiseDairy(TreeDairy dairy, Canvas canvas)
+        {
+            Drawer d = new Drawer();
+
+            canvas.Children.Clear();
+
+            int rootLeft = 2200;
+            int rootTop = 50;
+
+            int nodeWidth = 50;
+            int nodeHeight = 50;
+
+            int labelWidth = 100;
+            int labelHeight = 20;
+
+            Brush color = Brushes.SteelBlue;
+
+            Ellipse root = d.CreateEllipse(canvas, nodeWidth, nodeHeight, rootLeft, rootTop, color);
+
+            int curLevel = 0;
+            int curGroup = 0;
+
+            List<KeyValuePair<int, List<TreeDairy.Split>>> tree = dairy.SplitList.ToList();
+
+
+            int curLeft = rootLeft - tree[0].Value.Count() * (nodeWidth + 25);
+            int curTop = rootTop + 100;
+            int curRootLeft = rootLeft;
+            int curRootTop = rootTop;
+            int proxyRootLeft = rootLeft;
+            int proxyRootTop = rootTop;
+
+            (double x, double y) rootPoint = (rootLeft, rootTop);
+            (double x, double y)[] childrenPoints = new (double x, double y)[tree[0].Value.Count()];
+
+
+            for (int i = 0; i < tree.Count; i++)
+            {
+                for (int j = 0; j < tree[i].Value.Count(); j++)
+                {
+                    d.CreateLine(canvas, curRootLeft, curRootTop, curLeft, curTop, Brushes.Azure);
+
+                    List<KeyValuePair<string, double>> classProbList = tree[i].Value[j].ClassProbList.ToList();
+                    Brush elColor = Brushes.SteelBlue;
+                    if (tree[i].Value[j].WasPicked)
+                    {
+                        elColor = Brushes.LightGoldenrodYellow;
+                        proxyRootLeft = curLeft;
+                        proxyRootTop = curTop;
+                    }
+
+                    Ellipse newEllipse = d.CreateEllipse(canvas, nodeWidth, nodeHeight, curLeft, curTop, elColor);
+                    
+                    for (int k = 0; k < classProbList.Count(); k++)
+                    {
+                        d.CreateLabel(canvas, labelWidth, labelHeight,
+                            curLeft,
+                            curTop + nodeHeight + k * (labelHeight + 5), 
+                            Brushes.Black,
+                            $"{classProbList[k].Key} -> {classProbList[k].Value}");
+                    }
+
+                    curLeft += 200;
+                }
+                if (i >= tree.Count - 1) break;
+                curRootLeft = proxyRootLeft;
+                curRootTop = proxyRootTop;
+                curLeft = curRootLeft - tree[i + 1].Value.Count() * (nodeWidth + 25);
+                curTop = curTop + 200;
+            }
+
         }
     }
 }

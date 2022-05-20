@@ -41,8 +41,6 @@ namespace Keystrokes.Views
             this.graphService = graphService;
             this.classificationService = classificationService;
             DataContext = new KeystrokeViewModel(keystrokeService, graphService);
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File(@"C:\logs\keystrokes\log.log").WriteTo.Console().CreateLogger();
-            Log.Information("Logger created");
         }
 
 
@@ -187,14 +185,14 @@ namespace Keystrokes.Views
 
         private void Classify_BtnClicked(object sender, RoutedEventArgs e)
         {
-            KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
-            TestSample testSample = keystrokeService.AddTestSample(probe, CategoryNameTxtBox.Text);
-            KnnNode knnNode = graphService.TestSampleToKnnNode(testSample);
-            Dictionary<string, double> keyProbList = classificationService.treeDecisions(dc.GraphModel, knnNode, 0.4);
-            keyProbList.ToList().ForEach(item =>
-            {
-                Log.Information($"Test Sample '{testSample.Category}' was classified to\n{item.Key} with probability = '{item.Value}'\n");
-            });
+            //KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
+            //TestSample testSample = keystrokeService.AddTestSample(probe, CategoryNameTxtBox.Text);
+            //KnnNode knnNode = graphService.TestSampleToKnnNode(testSample);
+            //Dictionary<string, double> keyProbList = classificationService.TreeDecisions(dc.GraphModel, knnNode, 0.4);
+            //keyProbList.ToList().ForEach(item =>
+            //{
+            //    Log.Information($"Test Sample '{testSample.Category}' was classified to\n{item.Key} with probability = '{item.Value}'\n");
+            //});
             
         }
 

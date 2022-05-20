@@ -5,15 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Keystrokes"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="980" Width="1800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,5,0,0">
-            <ToggleButton Name="NavBtn0" Content="Keystrokes" Click="ChangeToKeystrokesClicked" Margin="3" Width="150" FontSize="18"></ToggleButton>
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Background="DimGray">
+            <ToggleButton Name="NavBtn0" Content="Keystrokes" Click="ChangeToKeystrokesClicked" Width="150" FontSize="18"></ToggleButton>
+            <ToggleButton Name="NavBtn1" Content="Classification" Click="ChangeToClassificationClicked" Width="150" FontSize="18"></ToggleButton>
             <!--<ToggleButton Name="NavBtn6" Content="Skeletons" Click="ChangeToSkeletonsClicked" Margin="3" Width="150" FontSize="18"></ToggleButton>-->
         </StackPanel>
 
