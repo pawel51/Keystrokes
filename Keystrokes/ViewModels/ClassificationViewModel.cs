@@ -55,7 +55,7 @@ namespace Keystrokes.ViewModels
             Labels = new[] { "KNN", "KMEANS", "BAYES", "DECISSIONTREES" };
             Formatter = value => value.ToString("N");
 
-            double[] accVals = new double[4] { 0.3, 0.4, 0.555, 0.69 };
+            double[] accVals = new double[4] { 0, 0, 0, 0 };
             AccuracySeries[0].Values.AddRange(accVals.ToList().Select(v => new ObservableValue(v)));
 
             TestSamples = new ObservableCollection<TestSample>(keystrokeService.GetTestSamples());
@@ -106,7 +106,7 @@ namespace Keystrokes.ViewModels
                         DwellTimeVisibility = Visibility.Visible;
                         break;
                     case Algorithm.DECISSIONTREES:
-                        MetricVisibility = Visibility.Visible;
+                        MetricVisibility = Visibility.Hidden;
                         KParamVisibility = Visibility.Hidden;
                         ProbThresholdVisibility = Visibility.Visible;
                         FlightTimeVisibility = Visibility.Hidden;
@@ -248,10 +248,7 @@ namespace Keystrokes.ViewModels
 
 
         private ChartValues<ObservableValue> accuracyValues;
-        private readonly IKnnClassificatorService classService;
-        private readonly IGraphService graphService;
-        private readonly IKeystrokeService keystrokeService;
-
+        
         public ChartValues<ObservableValue> AccuracyValues
         {
             get { return accuracyValues; }
@@ -259,5 +256,9 @@ namespace Keystrokes.ViewModels
         }
 
         #endregion
+
+        private readonly IKnnClassificatorService classService;
+        private readonly IGraphService graphService;
+        private readonly IKeystrokeService keystrokeService;
     }
 }

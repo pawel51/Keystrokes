@@ -61,7 +61,7 @@ namespace Keystrokes.Services.Interfaces
         /// <param name="graph"></param>
         /// <param name="node"></param>
         /// <returns>Zwraca listę klas i prawdopodobieństw przynależności do każdej z nich</returns>
-        public Dictionary<string, double> TreeDecisions(KnnGraph graph, KnnNode node, double probThreshold, Canvas canvas);
+        public Dictionary<string, double> TreeDecisions(KnnGraph graph, KnnNode node, double probThreshold, Canvas canvasDwell, Canvas canvasFlight);
 
 
     }

@@ -3,6 +3,8 @@ using Keystrokes.Services.Interfaces;
 using Keystrokes.ViewModels;
 using KeystrokesData.Entities;
 using KeystrokesData.Enums;
+using LiveCharts;
+using LiveCharts.Defaults;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -34,8 +36,14 @@ namespace Keystrokes.Views
             this.graphService = graphService;
             this.classificationService = classificationService;
 
-            canvasBorder.Height = canvas.Height + 4;
-            canvasBorder.Width = canvas.Width + 4;
+            canvasBorderDwell.Height = canvasDwell.Height + 4;
+            canvasBorderDwell.Width = canvasDwell.Width + 4;
+
+            canvasBorderFlight.Height = canvasFlight.Height + 4;
+            canvasBorderFlight.Width = canvasFlight.Width + 4;
+
+            Scroll1.ScrollToHorizontalOffset(canvasDwell.Width / 2);
+            Scroll2.ScrollToHorizontalOffset(canvasFlight.Width / 2);
 
             //Label label = new Label();
 
@@ -100,11 +108,36 @@ namespace Keystrokes.Views
         {
             ClassificationViewModel dc = (ClassificationViewModel)DataContext;
             
-            KnnNode knnNode = graphService.TestSampleToKnnNode(dc.TestSamples.Last());
-            Dictionary<string, double> keyProbList = classificationService.TreeDecisions(dc.GraphModel, knnNode, 0.4, canvas);
-            keyProbList.ToList().ForEach(item =>
+            List<TestSample> testSamples = TestDataGrid.SelectedItems.Cast<TestSample>().ToList();
+
+            List<Dictionary<string, double>> outcomes = new List<Dictionary<string, double>>();
+
+            int correctClassifications = 0;
+            testSamples.ForEach(sample =>
             {
-                Log.Information($"Test Sample '{dc.TestSamples.Last().Category}' was classified to\n{item.Key} with probability = '{item.Value}'\n");
+                KnnNode knnNode = graphService.TestSampleToKnnNode(sample);
+                Dictionary<string, double> keyProbList = classificationService.TreeDecisions(dc.GraphModel, knnNode, 0.4, canvasDwell, canvasFlight);
+                // key of the greatest value
+                string classString = keyProbList.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+                string categoryToVerify = sample.Category.Split('_')[0];
+
+                if (categoryToVerify != null && String.Equals(categoryToVerify, classString))
+                    correctClassifications++;
+
+                outcomes.Add(keyProbList);
+
+            });
+
+            // updates treedecission's accuracy on the chart 
+            dc.AccuracySeries[0].Values.Cast<ObservableValue>().ToList()[3].Value
+                = Math.Round(correctClassifications * 1.0 / outcomes.Count, 2);
+
+            outcomes.ForEach(outcome =>
+            {
+                outcome.ToList().ForEach(keyprobe =>
+                {
+                    Log.Information($"Test Sample '{dc.TestSamples.Last().Category}' was classified to\n{keyprobe.Key} with probability = '{keyprobe.Value}'\n");
+                });
             });
 
         }

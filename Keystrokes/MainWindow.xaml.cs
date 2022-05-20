@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using KeystrokesData;
 using Keystrokes.Services.Interfaces;
 using Serilog;
+using Serilog.Events;
 using Microsoft.Extensions.Configuration;
 
 namespace Keystrokes
@@ -24,7 +25,11 @@ namespace Keystrokes
             InitializeComponent();
 
             
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File(@"C:\logs\keystrokes\log.log").WriteTo.Console().CreateLogger();
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .WriteTo.File(@"C:\logs\keystrokes\log.log")
+                .WriteTo.Console().CreateLogger();
 
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) => {

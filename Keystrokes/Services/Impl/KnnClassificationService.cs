@@ -39,7 +39,7 @@ namespace Keystrokes.Services.Impl
             public List<(string klass, double value)> Items { get; set; }
         }
 
-        public Dictionary<string, double> TreeDecisions(KnnGraph graph, KnnNode node, double probThreshold, Canvas canvas)
+        public Dictionary<string, double> TreeDecisions(KnnGraph graph, KnnNode node, double probThreshold, Canvas canvasDwell, Canvas canvasFlight)
         {
             
 
@@ -85,7 +85,8 @@ namespace Keystrokes.Services.Impl
                 }
             });
 
-            VisualiseDairy(dairyDwell, canvas);
+            VisualiseDairy(dairyDwell, canvasDwell);
+            VisualiseDairy(dairyFlight, canvasFlight);
 
 
             return klassProbList;
@@ -249,11 +250,8 @@ namespace Keystrokes.Services.Impl
             // calculate mean dwells
             graph.Nodes.ToList().ForEach(nod =>
             {
-                double sum = 0;
-                nod.Value.Keystrokes.ToList().ForEach(keyStroke =>
-                {
-                    sum += keyStroke.Value.dwell;
-                });
+                double sum = nod.Value.Keystrokes.Select(k => k.Value.dwell).Sum();
+
                 meanDwellList.Add((nod.Key, sum / nod.Value.Keystrokes.Count));
 
                 string classKey = nod.Key.Split('_')[0];
@@ -276,11 +274,8 @@ namespace Keystrokes.Services.Impl
             // calculate mean dwells
             graph.Nodes.ToList().ForEach(nod =>
             {
-                double sum = 0;
-                nod.Value.Keystrokes.ToList().ForEach(keyStroke =>
-                {
-                    sum += keyStroke.Value.flight;
-                });
+                double sum = nod.Value.Keystrokes.Select(keystroke => keystroke.Value.flight).Sum();
+
                 meanFlightList.Add((nod.Key, sum / nod.Value.Keystrokes.Count));
 
                 string classKey = nod.Key.Split('_')[0];
