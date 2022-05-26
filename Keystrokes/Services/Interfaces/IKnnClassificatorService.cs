@@ -22,7 +22,7 @@ namespace Keystrokes.Services.Interfaces
         /// <param name="node">Wierzchołek który próbujemy sklasyfikować</param>
         /// <param name="k">Liczba rozpatrywanych sąsiadów</param>
         /// <returns>Listę </returns>
-        public List<string> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k);
+        public Dictionary<string, double> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k);
 
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Keystrokes.Services.Interfaces
         /// <param name="node">Wierzchołek który próbujemy sklasyfikować</param>
         /// <param name="k">Liczba zwracanych średnich</param>
         /// <returns>zwraca listę klas od długości np. 5 posortowaną od najbliższej klasy do najdalszej</returns>
-        public List<string> FindNearestMean(KnnGraph graph, KnnNode node, int k);
+        public Dictionary<string, double> FindNearestMean(KnnGraph graph, KnnNode node, int k);
 
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Keystrokes.Services.Interfaces
         /// <param name="graph">Model grafu</param>
         /// <param name="node">Wierzchołek który próbujemy sklasyfikować</param>
         /// <returns></returns>
-        public List<(string klass, double prob)> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2);
+        public Dictionary<string, double> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2);
 
 
         /// <summary>

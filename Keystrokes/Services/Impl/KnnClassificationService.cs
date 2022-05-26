@@ -15,19 +15,114 @@ namespace Keystrokes.Services.Impl
 {
     public class KnnClassificationService : IKnnClassificatorService
     {
-        public List<string> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k)
+        public Dictionary<string, double> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k)
         {
-            throw new NotImplementedException();
+            Dictionary<string, double> result = new Dictionary<string, double>();
+
+            List<(string neigh, double dist)> neighDistances = new List<(string neigh, double dist)>();
+
+            graph.Edges.Where(edge => edge.Key.Contains(node.Category))
+                .OrderBy(edge => edge.Value.Distance)
+                .Take(k)
+                .ToList()
+                .ForEach(edge => neighDistances.Add((edge.Key.Replace(node.Category, ""), edge.Value.Distance)));
+
+            neighDistances.GroupBy(n => n.neigh)
+                .OrderBy(n => n.Count())
+                .ToList()
+                .ForEach(n => result.Add(n.Key, Math.Round(n.Count() * 1.0 / neighDistances.Count(), 2)));
+
+            return result;
         }
 
-        public List<(string klass, double prob)> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2)
+
+        public Dictionary<string, double> FindNearestMean(KnnGraph graph, KnnNode node, int k)
         {
-            throw new NotImplementedException();
+            Dictionary<string, double> result = new Dictionary<string, double>();
+
+            // class, mean distance to class 
+            Dictionary<string, double> classDistances = new Dictionary<string, double>();
+            Dictionary<string, int> classMeanCount = new Dictionary<string, int>();
+            graph.Edges.Where(edge => edge.Key.Contains(node.Category))
+                .ToList()
+                .ForEach(edge =>
+                {
+                    string nodeCat = edge.Key.Replace(node.Category, "");
+                    if (classDistances.ContainsKey(nodeCat)){
+                        classDistances[nodeCat] += edge.Value.Distance;
+                        classMeanCount[nodeCat]++;
+                    }
+                    else
+                    {
+                        classDistances.Add(nodeCat, edge.Value.Distance);
+                        classMeanCount.Add(nodeCat, 1);
+                    }
+                });
+            Dictionary<string, double> classMeanDistances = new Dictionary<string, double>();
+            classDistances.ToList().ForEach(dist =>
+            {
+                classMeanDistances.Add(dist.Key, dist.Value / classMeanCount[dist.Key]);
+            });
+
+            List<KeyValuePair<string, double>> taken = classMeanDistances.ToList()
+                .OrderBy(d => d.Value)
+                .Take(k)
+                .ToList();
+
+            double sum = taken.Sum(t => t.Value);
+
+            taken.ForEach(e => result.Add(e.Key, Math.Round(e.Value / sum, 2)));
+
+            return result;
         }
 
-        public List<string> FindNearestMean(KnnGraph graph, KnnNode node, int k)
+
+        public Dictionary<string, double> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2)
         {
-            throw new NotImplementedException();
+            Dictionary<string, double> result = new Dictionary<string, double>();
+
+            Dictionary<string, int> klasses = new Dictionary<string, int>();
+
+            List<(string key, double dwell)> meanDwellList = CalcMeanDwells(graph, klasses);
+            List<(string key, double flight)> meanFlightList = CalcMeanFlights(graph, klasses);
+
+            double meanDwellNode = node.Keystrokes.Average(e => e.Value.dwell);
+            double meanFlightNode = node.Keystrokes.Average(e => e.Value.flight);
+
+            Dictionary<string, double> classProbeDwell = new Dictionary<string, double>();
+            Dictionary<string, double> classProbeFlight = new Dictionary<string, double>();
+
+            List<(string key, double dwell)> closeDwellList = meanDwellList
+                .Where(e => e.dwell <= meanDwellNode + d1 && e.dwell >= meanDwellNode - d1).ToList();
+
+            List<(string key, double flight)> closeFlightList = meanFlightList
+                .Where(e => e.flight <= meanFlightNode + d2 && e.flight >= meanFlightNode - d2).ToList();
+
+
+            closeDwellList.GroupBy(e => e.key)
+                .ToList()
+                .ForEach(e =>
+                {
+                    classProbeDwell.Add(e.Key, Math.Round(e.Count() * 1.0 / closeDwellList.Count, 2));
+                });
+
+            closeFlightList.GroupBy(e => e.key)
+                .ToList()
+                .ForEach(e =>
+                {
+                    classProbeFlight.Add(e.Key, Math.Round(e.Count() * 1.0 / closeFlightList.Count, 2));
+                });
+
+            classProbeDwell.ToList().ForEach(p =>
+            {
+                if (classProbeFlight.ContainsKey(p.Key) && !result.ContainsKey(p.Key))
+                {
+                    result.Add(p.Key, p.Value * classProbeFlight[p.Key]);
+                }
+            });
+
+            return result;
+
         }
 
 
