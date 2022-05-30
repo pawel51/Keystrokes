@@ -87,6 +87,7 @@ namespace Keystrokes.Views
         private void ReadTestData_Click(object sender, RoutedEventArgs e)
         {
             ClassificationViewModel dc = (ClassificationViewModel)DataContext;
+            dc.TestSamples.Clear();
             List<TestSample> samples = keystrokeService.ReadTestingData("ss");
             foreach (TestSample sample in samples)
             {
@@ -107,9 +108,10 @@ namespace Keystrokes.Views
         private void Classify_BtnClicked(object sender, RoutedEventArgs e)
         {
             ClassificationViewModel dc = (ClassificationViewModel)DataContext;
+
+            if (!Validation(dc)) return;
             
             List<TestSample> testSamples = TestDataGrid.SelectedItems.Cast<TestSample>().ToList();
-
             List<Dictionary<string, double>> outcomes = new List<Dictionary<string, double>>();
 
             int correctClassifications = 0;
@@ -118,28 +120,98 @@ namespace Keystrokes.Views
                 KnnNode knnNode = graphService.TestSampleToKnnNode(sample);
                 Dictionary<string, double> keyProbList = classificationService.TreeDecisions(dc.GraphModel, knnNode, 0.4, canvasDwell, canvasFlight);
                 // key of the greatest value
-                string classString = keyProbList.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-                string categoryToVerify = sample.Category.Split('_')[0];
-
-                if (categoryToVerify != null && String.Equals(categoryToVerify, classString))
-                    correctClassifications++;
+                correctClassifications = CheckAccuracy(sample, correctClassifications, keyProbList);
 
                 outcomes.Add(keyProbList);
 
             });
 
             // updates treedecission's accuracy on the chart 
-            dc.AccuracySeries[0].Values.Cast<ObservableValue>().ToList()[3].Value
-                = Math.Round(correctClassifications * 1.0 / outcomes.Count, 2);
+            UpdateChart(dc, outcomes, correctClassifications, 3);
 
+            LogOutcomes(dc, outcomes);
+
+            dc.TreeResults = outcomes[0];
+
+        }
+        
+
+        private void ClassifyKnn_BtnClicked(object sender, RoutedEventArgs e)
+        {
+            ClassificationViewModel dc = (ClassificationViewModel)DataContext;
+
+            if (!Validation(dc)) return;
+
+            List<TestSample> testSamples = TestDataGrid.SelectedItems.Cast<TestSample>().ToList();
+
+            List<Dictionary<string, double>> outcomes = new List<Dictionary<string, double>>();
+
+            int correctClassifications = 0;
+            testSamples.ForEach(sample =>
+            {
+                KnnNode knnNode = graphService.TestSampleToKnnNode(sample);
+                TrainSample trainSample = new TrainSample(sample);
+                graphService.UpdateGraph(trainSample, dc.GraphModel);
+                Dictionary<string, double> keyProbList = classificationService.FindMostCommonKnn(dc.GraphModel, knnNode, 5, canvasKnn);
+                // key of the greatest value
+                correctClassifications = CheckAccuracy(sample, correctClassifications, keyProbList);
+
+                outcomes.Add(keyProbList);
+
+            });
+
+            // updates treedecission's accuracy on the chart 
+            UpdateChart(dc, outcomes, correctClassifications, 0);
+
+            LogOutcomes(dc, outcomes);
+
+            dc.KnnResults = outcomes[0];
+
+        }
+
+        private int CheckAccuracy(TestSample sample, int correctClassifications, Dictionary<string, double> keyProbList)
+        {
+            if (keyProbList.Count == 0)
+            {
+                MessageBox.Show("Graph model was not updated with node to classify");
+                return correctClassifications;
+            }
+
+            string classString = keyProbList.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+            string categoryToVerify = sample.Category.Split('_')[0];
+
+            if (categoryToVerify != null && String.Equals(categoryToVerify, classString))
+                correctClassifications++;
+            return correctClassifications;
+        }
+
+        private static void UpdateChart(ClassificationViewModel dc, List<Dictionary<string, double>> outcomes, int correctClassifications, int barNumber)
+        {
+            dc.AccuracySeries[0].Values.Cast<ObservableValue>().ToList()[barNumber].Value
+                            = Math.Round(correctClassifications * 1.0 / outcomes.Count, 2);
+        }
+
+        private bool Validation(ClassificationViewModel dc)
+        {
+            if (dc.GraphModel == null) return false;
+
+            if (TestDataGrid.SelectedItems == null)
+            {
+                MessageBox.Show("You must select samples first");
+                return false;
+            }
+            return true;
+        }
+
+        private void LogOutcomes(ClassificationViewModel dc, List<Dictionary<string, double>> outcomes)
+        {
             outcomes.ForEach(outcome =>
             {
                 outcome.ToList().ForEach(keyprobe =>
                 {
-                    Log.Information($"Test Sample '{dc.TestSamples.Last().Category}' was classified to\n{keyprobe.Key} with probability = '{keyprobe.Value}'\n");
+                    Log.Information($"Algorithm KNN: Test Sample '{dc.TestSamples.Last().Category}' was classified to\n{keyprobe.Key} with probability = '{keyprobe.Value}'\n");
                 });
             });
-
         }
     }
 }

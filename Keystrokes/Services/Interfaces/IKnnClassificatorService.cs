@@ -24,6 +24,12 @@ namespace Keystrokes.Services.Interfaces
         /// <returns>Listę </returns>
         public Dictionary<string, double> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k);
 
+        /// <summary>
+        /// Dodatkowo wizualizuje na canvasie
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public Dictionary<string, double> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k, Canvas c);
 
         /// <summary>
         /// metoda rozpatrująca odległości pomiędzy średnimi 
@@ -64,5 +70,6 @@ namespace Keystrokes.Services.Interfaces
         public Dictionary<string, double> TreeDecisions(KnnGraph graph, KnnNode node, double probThreshold, Canvas canvasDwell, Canvas canvasFlight);
 
 
+        
     }
 }

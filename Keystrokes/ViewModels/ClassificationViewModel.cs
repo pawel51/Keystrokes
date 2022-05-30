@@ -230,6 +230,39 @@ namespace Keystrokes.ViewModels
             set { testSamples = value; OnPropertyChanged(nameof(TestSamples)); }
         }
 
+        private Dictionary<string, double> knnResults;
+
+        public Dictionary<string, double> KnnResults
+        {
+            get { return knnResults; }
+            set { knnResults = value; OnPropertyChanged(nameof(KnnResults)); }
+        }
+
+        private Dictionary<string, double> kmeansResults;
+
+        public Dictionary<string, double> KmeansResults
+        {
+            get { return kmeansResults; }
+            set { kmeansResults = value; OnPropertyChanged(nameof(KmeansResults)); }
+        }
+
+        private Dictionary<string, double> bayesResults;
+
+        public Dictionary<string, double> BayesResults
+        {
+            get { return bayesResults; }
+            set { bayesResults = value; OnPropertyChanged(nameof(BayesResults)); }
+        }
+
+        private Dictionary<string, double> treeResults;
+
+        public Dictionary<string, double> TreeResults
+        {
+            get { return treeResults; }
+            set { treeResults = value; OnPropertyChanged(nameof(TreeResults)); }
+        }
+
+
         #endregion
 
         #region CHART

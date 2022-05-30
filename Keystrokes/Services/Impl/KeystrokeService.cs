@@ -182,8 +182,8 @@ namespace Keystrokes.Services.Impl
             {
                 DialogResult result = fbd.ShowDialog();
 
-                //if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                //    SetupCategories(testDataFileName, config, fbd, testSamples);
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                    SetupCategories(testDataFileName, config, fbd, testSamples);
             }
 
             return testSamples;
@@ -258,74 +258,74 @@ namespace Keystrokes.Services.Impl
             }
         }
 
-        //private void SetupCategories(string testDataFileName, CsvConfiguration config, FolderBrowserDialog fbd, List<TrainSample> trainSamples)
-        //{
+        private void SetupCategories(string testDataFileName, CsvConfiguration config, FolderBrowserDialog fbd, List<TestSample> testSamples)
+        {
 
-        //    string[] files = Directory.GetFiles(fbd.SelectedPath);
+            string[] files = Directory.GetFiles(fbd.SelectedPath);
 
-        //    List<SingleRowModel>[] sfm = new List<SingleRowModel>[files.Length];
+            List<SingleRowModel>[] sfm = new List<SingleRowModel>[files.Length];
 
-        //    for (int i = 0; i < files.Length; i++)
-        //    {
-        //        Dictionary<string, List<(double flight, double dwell)>> probe
-        //            = new Dictionary<string, List<(double flight, double dwell)>>();
+            for (int i = 0; i < files.Length; i++)
+            {
+                Dictionary<string, List<(double flight, double dwell)>> probe
+                    = new Dictionary<string, List<(double flight, double dwell)>>();
 
-        //        string probeName = files[i].Substring(files[i].Length - 9);
-        //        try
-        //        {
-        //            using (var reader = new StreamReader(files[i]))
-        //            using (var csv = new CsvReader(reader, config))
-        //            {
-        //                if (probeName == testDataFileName)
-        //                {
-        //                    continue;
-        //                }
+                string probeName = files[i].Substring(files[i].Length - 9);
+                try
+                {
+                    using (var reader = new StreamReader(files[i]))
+                    using (var csv = new CsvReader(reader, config))
+                    {
+                        if (probeName == testDataFileName)
+                        {
+                            continue;
+                        }
 
 
-        //                try
-        //                {
-        //                    sfm[i] = csv.GetRecords<SingleRowModel>().ToList();
-        //                }
-        //                catch (Exception exception)
-        //                {
-        //                    sfm[i] = new List<SingleRowModel>();
-        //                    System.Windows.MessageBox.Show($"{files[i]} cannot be converted");
-        //                    continue;
-        //                }
-        //            }
-        //        }
-        //        catch (IOException exception)
-        //        {
-        //            System.Windows.MessageBox.Show($"{files[i]} is being used by another process!!!");
-        //            continue;
-        //        }
+                        try
+                        {
+                            sfm[i] = csv.GetRecords<SingleRowModel>().ToList();
+                        }
+                        catch (Exception exception)
+                        {
+                            sfm[i] = new List<SingleRowModel>();
+                            System.Windows.MessageBox.Show($"{files[i]} cannot be converted");
+                            continue;
+                        }
+                    }
+                }
+                catch (IOException exception)
+                {
+                    System.Windows.MessageBox.Show($"{files[i]} is being used by another process!!!");
+                    continue;
+                }
 
-        //        // setup and add category
-        //        if (sfm[i].Count > 0)
-        //        {
-        //            for (int j = 0; j < sfm[i].Count; j++)
-        //            {
+                // setup and add category
+                if (sfm[i].Count > 0)
+                {
+                    for (int j = 0; j < sfm[i].Count; j++)
+                    {
 
-        //                string strKey = sfm[i][j].KeyName;
-        //                if (probe.ContainsKey(strKey))
-        //                {
-        //                    probe[strKey].Add((sfm[i][j].TimeFromPrev, sfm[i][j].TimePressed));
-        //                }
-        //                else
-        //                {
-        //                    probe[strKey] = new List<(double flight, double dwell)>()
-        //                    {
-        //                        (sfm[i][j].TimeFromPrev, sfm[i][j].TimePressed)
-        //                    };
-        //                }
-        //            }
-        //        }
+                        string strKey = sfm[i][j].KeyName;
+                        if (probe.ContainsKey(strKey))
+                        {
+                            probe[strKey].Add((sfm[i][j].TimeFromPrev, sfm[i][j].TimePressed));
+                        }
+                        else
+                        {
+                            probe[strKey] = new List<(double flight, double dwell)>()
+                            {
+                                (sfm[i][j].TimeFromPrev, sfm[i][j].TimePressed)
+                            };
+                        }
+                    }
+                }
 
-        //        TrainSample? ts = this.AddTrainSample(probe, probeName);
-        //        if (ts != null) trainSamples.Add(ts);
+                TestSample? ts = AddTestSample(probe, probeName);
+                if (ts != null) testSamples.Add(ts);
 
-        //    }
-        //}
+            }
+        }
 
     }
 }

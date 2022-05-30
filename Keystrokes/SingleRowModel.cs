@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Keystrokes.Models
 {
-    public class SingleRowModel : BaseModel
+    public class SingleRowModel
     {
 
         private string _keyName;

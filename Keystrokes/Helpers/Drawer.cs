@@ -24,6 +24,20 @@ namespace Keystrokes.Helpers
             return e;
         }
 
+        public Ellipse CreatePoint(Canvas c, int width, int height, int left, int top, Brush brush, string toolTip)
+        {
+            Ellipse e = new Ellipse();
+            e.Width = width;
+            e.Height = height;
+            e.Fill = brush;
+            e.ToolTip = toolTip;
+            Canvas.SetLeft(e, left);
+            Canvas.SetTop(e, top);
+
+            c.Children.Add(e);
+            return e;
+        }
+
         public Label CreateLabel(Canvas c, int width, int height, int left, int top, Brush brush, string content)
         {
             Label e = new Label();

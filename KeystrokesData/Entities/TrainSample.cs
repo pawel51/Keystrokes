@@ -14,6 +14,15 @@ namespace KeystrokesData.Entities
 
         public List<SingleProbe> Probes { get; set; }
 
+        public TrainSample()
+        {
 
+        }
+
+        public TrainSample(TestSample sample)
+        {
+            Category = sample.Category;
+            Probes = sample.Probes;
+        }
     }
 }

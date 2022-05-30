@@ -15,10 +15,29 @@ namespace Keystrokes.Services.Impl
 {
     public class KnnClassificationService : IKnnClassificatorService
     {
+
         public Dictionary<string, double> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k)
         {
             Dictionary<string, double> result = new Dictionary<string, double>();
 
+            GetKnnResults(graph, node, k, result);
+
+            return result;
+        }
+
+        public Dictionary<string, double> FindMostCommonKnn(KnnGraph graph, KnnNode node, int k, Canvas c)
+        {
+            Dictionary<string, double> result = new Dictionary<string, double>();
+
+            GetKnnResults(graph, node, k, result);
+
+            DrawPoints(graph, node, c);
+
+            return result;
+        }
+
+        private void GetKnnResults(KnnGraph graph, KnnNode node, int k, Dictionary<string, double> result)
+        {
             List<(string neigh, double dist)> neighDistances = new List<(string neigh, double dist)>();
 
             graph.Edges.Where(edge => edge.Key.Contains(node.Category))
@@ -27,14 +46,89 @@ namespace Keystrokes.Services.Impl
                 .ToList()
                 .ForEach(edge => neighDistances.Add((edge.Key.Replace(node.Category, ""), edge.Value.Distance)));
 
-            neighDistances.GroupBy(n => n.neigh)
+            neighDistances.GroupBy(n => n.neigh.Split('_')[0])
                 .OrderBy(n => n.Count())
                 .ToList()
                 .ForEach(n => result.Add(n.Key, Math.Round(n.Count() * 1.0 / neighDistances.Count(), 2)));
-
-            return result;
         }
 
+
+        private void DrawPoints(KnnGraph graph, KnnNode node, Canvas canvas)
+        {
+            Dictionary<string, Brush> classsColor = new Dictionary<string, Brush>();
+            List<ProbeOnMap> map = GetXsandYs(graph, classsColor);
+
+            canvas.Children.Clear();
+
+            double actMinLeft = 10;
+            double actMinTop = 10;
+
+            double minWidth = map.Min(p => p.Dwell);
+
+            double minHeight = map.Min(p => p.Flight);
+
+            double scaleFactorX = 6;
+            double scaleFactorY = 1.2;
+
+            Drawer d = new Drawer();
+            // draw dots
+            map.ForEach(probe =>
+            {
+                d.CreatePoint(canvas, 8, 8,
+                    (int)(actMinLeft + Math.Abs(probe.Dwell - minWidth) * scaleFactorX),
+                    (int)(actMinTop + Math.Abs(probe.Flight - minHeight) * scaleFactorY),
+                    probe.Color,
+                    probe.Clas + " (" + Math.Round(probe.Flight) + "," + Math.Round(probe.Dwell) + ")");
+            });
+
+            //draw legend
+            int startTop = 20, startLeft = 620;
+            d.CreateLabel(canvas, 50, 14, startLeft, startTop, Brushes.Black, "Legend");
+            int i = 1;
+            classsColor.ToList().ForEach(clasColor =>
+            {
+                d.CreateEllipse(canvas, 8, 8, startLeft, startTop + i * 24 + 10, clasColor.Value);
+                d.CreateLabel(canvas, 80, 14, startLeft + 12, startTop + i * 24, Brushes.Black, clasColor.Key);
+                i++;
+            });
+
+            //draw point to classify
+            double meanDwell = node.Keystrokes.Average(e => e.Value.dwell);
+            double meanFlight = node.Keystrokes.Average(e => e.Value.flight);
+            d.CreatePoint(canvas,
+                8, 8,
+                (int)meanDwell,
+                (int)meanFlight,
+                Brushes.Red,
+                node.Category);
+
+        }
+
+
+
+        private List<ProbeOnMap> GetXsandYs(KnnGraph graph, Dictionary<string, Brush> classsColor)
+        {
+            Random r = new Random();
+            List<ProbeOnMap> map = new List<ProbeOnMap>();
+            graph.Nodes.ToList().ForEach(node =>
+            {
+                string klass = node.Value.Category.Split('_')[0];
+
+                if (!classsColor.ContainsKey(klass))
+                {
+                    classsColor.Add(klass, new SolidColorBrush(Color.FromRgb((byte)r.Next(1, 200), (byte)r.Next(1, 200), (byte)r.Next(1, 200))));
+                }
+                map.Add(new ProbeOnMap()
+                {
+                    Dwell = node.Value.Keystrokes.Average(ks => ks.Value.dwell),
+                    Flight = node.Value.Keystrokes.Average(ks => ks.Value.flight),
+                    Clas = klass,
+                    Id = node.Value.Category,
+                    Color = classsColor[klass]
+                });
+            });
+            return map;
+        }
 
         public Dictionary<string, double> FindNearestMean(KnnGraph graph, KnnNode node, int k)
         {
@@ -475,5 +569,7 @@ namespace Keystrokes.Services.Impl
             }
 
         }
+
+        
     }
 }
