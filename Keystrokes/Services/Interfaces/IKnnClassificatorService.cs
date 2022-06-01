@@ -39,7 +39,7 @@ namespace Keystrokes.Services.Interfaces
         /// <param name="node">Wierzchołek który próbujemy sklasyfikować</param>
         /// <param name="k">Liczba zwracanych średnich</param>
         /// <returns>zwraca listę klas od długości np. 5 posortowaną od najbliższej klasy do najdalszej</returns>
-        public Dictionary<string, double> FindNearestMean(KnnGraph graph, KnnNode node, int k);
+        public Dictionary<string, double> FindNearestMean(KnnGraph graph, KnnNode node, int k, Canvas c);
 
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Keystrokes.Services.Interfaces
         /// <param name="graph">Model grafu</param>
         /// <param name="node">Wierzchołek który próbujemy sklasyfikować</param>
         /// <returns></returns>
-        public Dictionary<string, double> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2);
+        public Dictionary<string, double> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2, Canvas c);
 
 
         /// <summary>

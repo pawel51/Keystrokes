@@ -2,6 +2,7 @@
 using Keystrokes.Models;
 using Keystrokes.Models.KnnGraph;
 using Keystrokes.Services.Interfaces;
+using KeystrokesData.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Keystrokes.Services.Impl
 
             GetKnnResults(graph, node, k, result);
 
-            DrawPoints(graph, node, c);
+            DrawPoints(graph, node, c, Algorithm.KNN);
 
             return result;
         }
@@ -40,7 +41,7 @@ namespace Keystrokes.Services.Impl
         {
             List<(string neigh, double dist)> neighDistances = new List<(string neigh, double dist)>();
 
-            graph.Edges.Where(edge => edge.Key.Contains(node.Category))
+            graph.Edges.Where(edge => edge.Key.Contains(node.Category) && edge.Value.Distance != 0)
                 .OrderBy(edge => edge.Value.Distance)
                 .Take(k)
                 .ToList()
@@ -53,10 +54,12 @@ namespace Keystrokes.Services.Impl
         }
 
 
-        private void DrawPoints(KnnGraph graph, KnnNode node, Canvas canvas)
+        private void DrawPoints(KnnGraph graph, KnnNode node, Canvas canvas, Algorithm alg)
         {
             Dictionary<string, Brush> classsColor = new Dictionary<string, Brush>();
-            List<ProbeOnMap> map = GetXsandYs(graph, classsColor);
+            List<ProbeOnMap> map = GetXsandYsForKnn(graph, classsColor);
+            
+            if (map == null) return; 
 
             canvas.Children.Clear();
 
@@ -71,6 +74,16 @@ namespace Keystrokes.Services.Impl
             double scaleFactorY = 1.2;
 
             Drawer d = new Drawer();
+            //draw point to classify
+            double meanDwell = node.Keystrokes.Average(e => e.Value.dwell);
+            double meanFlight = node.Keystrokes.Average(e => e.Value.flight);
+            d.CreatePoint(canvas,
+                16, 16,
+                (int)(actMinLeft + Math.Abs(meanDwell - minWidth) * scaleFactorX),
+                (int)(actMinTop + Math.Abs(meanFlight - minHeight) * scaleFactorY),
+                Brushes.Red,
+                node.Category);
+
             // draw dots
             map.ForEach(probe =>
             {
@@ -92,25 +105,38 @@ namespace Keystrokes.Services.Impl
                 i++;
             });
 
-            //draw point to classify
-            double meanDwell = node.Keystrokes.Average(e => e.Value.dwell);
-            double meanFlight = node.Keystrokes.Average(e => e.Value.flight);
-            d.CreatePoint(canvas,
-                8, 8,
-                (int)meanDwell,
-                (int)meanFlight,
-                Brushes.Red,
-                node.Category);
+            
 
+            
         }
 
 
 
-        private List<ProbeOnMap> GetXsandYs(KnnGraph graph, Dictionary<string, Brush> classsColor)
+        private List<ProbeOnMap> GetXsandYsForKnn(KnnGraph graph, Dictionary<string, Brush> classsColor)
+        {
+            return GetXsandYs(classsColor, graph.Nodes.ToList());
+        }
+
+        private List<ProbeOnMap> GetXsandYsForKMeans(KnnGraph graph, Dictionary<string, Brush> classsColor)
+        {
+
+            List<KeyValuePair<string, KnnNode>> catNodes = new List<KeyValuePair<string, KnnNode>>();
+
+            graph.Nodes.ToList().ForEach(node =>
+            {
+                catNodes.Add(new KeyValuePair<string, KnnNode>(node.Key.Split('_')[0], node.Value));
+            });
+            List<KeyValuePair<string, KnnNode>> meanNodes = new List<KeyValuePair<string, KnnNode>>();
+
+            
+            return GetXsandYs(classsColor, meanNodes);
+        }
+
+        private List<ProbeOnMap> GetXsandYs(Dictionary<string, Brush> classsColor, List<KeyValuePair<string, KnnNode>> meanNodes)
         {
             Random r = new Random();
             List<ProbeOnMap> map = new List<ProbeOnMap>();
-            graph.Nodes.ToList().ForEach(node =>
+            meanNodes.ForEach(node =>
             {
                 string klass = node.Value.Category.Split('_')[0];
 
@@ -118,19 +144,23 @@ namespace Keystrokes.Services.Impl
                 {
                     classsColor.Add(klass, new SolidColorBrush(Color.FromRgb((byte)r.Next(1, 200), (byte)r.Next(1, 200), (byte)r.Next(1, 200))));
                 }
-                map.Add(new ProbeOnMap()
+                if (node.Value.Keystrokes.Count != 0)
                 {
-                    Dwell = node.Value.Keystrokes.Average(ks => ks.Value.dwell),
-                    Flight = node.Value.Keystrokes.Average(ks => ks.Value.flight),
-                    Clas = klass,
-                    Id = node.Value.Category,
-                    Color = classsColor[klass]
-                });
+                    map.Add(new ProbeOnMap()
+                    {
+                        Dwell = node.Value.Keystrokes.Average(ks => ks.Value.dwell),
+                        Flight = node.Value.Keystrokes.Average(ks => ks.Value.flight),
+                        Clas = klass,
+                        Id = node.Value.Category,
+                        Color = classsColor[klass]
+                    });
+                }
+                
             });
             return map;
         }
 
-        public Dictionary<string, double> FindNearestMean(KnnGraph graph, KnnNode node, int k)
+        public Dictionary<string, double> FindNearestMean(KnnGraph graph, KnnNode node, int k, Canvas c)
         {
             Dictionary<string, double> result = new Dictionary<string, double>();
 
@@ -141,16 +171,24 @@ namespace Keystrokes.Services.Impl
                 .ToList()
                 .ForEach(edge =>
                 {
-                    string nodeCat = edge.Key.Replace(node.Category, "");
-                    if (classDistances.ContainsKey(nodeCat)){
-                        classDistances[nodeCat] += edge.Value.Distance;
-                        classMeanCount[nodeCat]++;
-                    }
-                    else
+                    if (!Double.IsNaN(edge.Value.Distance))
                     {
-                        classDistances.Add(nodeCat, edge.Value.Distance);
-                        classMeanCount.Add(nodeCat, 1);
+                        string nodeCat = edge.Key.Replace(node.Category, "").Split('_')[0];
+                        if (!String.IsNullOrEmpty(nodeCat))
+                        {
+                            if (classDistances.ContainsKey(nodeCat))
+                            {
+                                classDistances[nodeCat] += edge.Value.Distance;
+                                classMeanCount[nodeCat]++;
+                            }
+                            else
+                            {
+                                classDistances.Add(nodeCat, edge.Value.Distance);
+                                classMeanCount.Add(nodeCat, 1);
+                            }
+                        }
                     }
+                    
                 });
             Dictionary<string, double> classMeanDistances = new Dictionary<string, double>();
             classDistances.ToList().ForEach(dist =>
@@ -167,11 +205,15 @@ namespace Keystrokes.Services.Impl
 
             taken.ForEach(e => result.Add(e.Key, Math.Round(e.Value / sum, 2)));
 
+            Drawer d = new Drawer();
+
+            DrawPoints(graph, node, c, Algorithm.KMEANS);
+
             return result;
         }
 
 
-        public Dictionary<string, double> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2)
+        public Dictionary<string, double> FindMostLikelyClassBayes(KnnGraph graph, KnnNode node, int d1, int d2, Canvas canvas)
         {
             Dictionary<string, double> result = new Dictionary<string, double>();
 
@@ -193,14 +235,14 @@ namespace Keystrokes.Services.Impl
                 .Where(e => e.flight <= meanFlightNode + d2 && e.flight >= meanFlightNode - d2).ToList();
 
 
-            closeDwellList.GroupBy(e => e.key)
+            closeDwellList.GroupBy(e => e.key.Split('_')[0])
                 .ToList()
                 .ForEach(e =>
                 {
                     classProbeDwell.Add(e.Key, Math.Round(e.Count() * 1.0 / closeDwellList.Count, 2));
                 });
 
-            closeFlightList.GroupBy(e => e.key)
+            closeFlightList.GroupBy(e => e.key.Split('_')[0])
                 .ToList()
                 .ForEach(e =>
                 {
@@ -211,9 +253,11 @@ namespace Keystrokes.Services.Impl
             {
                 if (classProbeFlight.ContainsKey(p.Key) && !result.ContainsKey(p.Key))
                 {
-                    result.Add(p.Key, p.Value * classProbeFlight[p.Key]);
+                    result.Add(p.Key, Math.Round(p.Value * classProbeFlight[p.Key], 2));
                 }
             });
+
+            DrawPoints(graph, node, canvas, Algorithm.KNN);
 
             return result;
 

@@ -171,14 +171,35 @@ namespace Keystrokes.Views
             {
                 dc.TrainingSamples.Add(sample);
                 MyTextBox.IsEnabled = false;
-                if (graphService.UpdateGraph(sample, dc.GraphModel))
+                if (graphService.UpdateGraph(sample, dc.GraphModel, dc.SelectedMetric))
                 {
-                    graphService.UpdateGraphToDb(dc.GraphModel, DistanceMetric.EUCLIDIAN);
+                    graphService.UpdateGraphToDb(dc.GraphModel, dc.SelectedMetric);
                 }
             }
             else
             {
                 MessageBox.Show("Couldn't add new training sample check if category already exists.");
+            }
+
+        }
+
+        private void Test_BtnClicked(object sender, RoutedEventArgs e)
+        {
+            KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
+            TestSample? sample = keystrokeService.AddTestSample(probe, CategoryNameTxtBox.Text);
+            if (graphService.UpdateGraph(new TrainSample(sample), dc.GraphModel, dc.SelectedMetric))
+            {
+                graphService.UpdateGraphToDb(dc.GraphModel, dc.SelectedMetric);
+            }
+
+            if (sample != null)
+            {
+                dc.TestSamples.Add(sample);
+                MyTextBox.IsEnabled = false;
+            }
+            else
+            {
+                MessageBox.Show("Couldn't add new training sample check if that probe name already exists.");
             }
 
         }
@@ -198,9 +219,8 @@ namespace Keystrokes.Views
 
         private void CreateKnnGraph_BtnClicked(object sender, RoutedEventArgs e)
         {
-            KnnGraph graph = graphService.CreateGraph(keystrokeService.GetTrainSamples(), DistanceMetric.EUCLIDIAN);
-            graphService.AddGraphToDb(graph, DistanceMetric.EUCLIDIAN);
-
+            KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
+            KnnGraph graph = graphService.CreateGraph(keystrokeService.GetTrainSamples(), dc.SelectedMetric);
         }
 
         private void StartWritting_BtnClicked(object sender, RoutedEventArgs e)
@@ -246,21 +266,21 @@ namespace Keystrokes.Views
             foreach (TrainSample sample in samples)
             {
                 dc.TrainingSamples.Add(sample);
-                graphService.UpdateGraph(sample, dc.GraphModel);
+                graphService.UpdateGraph(sample, dc.GraphModel, dc.SelectedMetric);
             }
             graphService.UpdateGraphToDb(dc.GraphModel, DistanceMetric.EUCLIDIAN);
         }
 
+        
         private void ReadTestData_Click(object sender, RoutedEventArgs e)
         {
-            //KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
-            //List<TestSample> samples = keystrokeService.Read("ss");
-            //foreach (TrainSample sample in samples)
-            //{
-            //    dc.TrainingSamples.Add(sample);
-            //    graphService.UpdateGraph(sample, dc.GraphModel);
-            //}
-            //graphService.UpdateGraphToDb(dc.GraphModel, DistanceMetric.EUCLIDIAN);
+            KeystrokeViewModel dc = (KeystrokeViewModel)DataContext;
+            dc.TestSamples.Clear();
+            List<TestSample> samples = keystrokeService.ReadTestingData("ss");
+            foreach (TestSample sample in samples)
+            {
+                dc.TestSamples.Add(sample);
+            }
         }
     }
 }

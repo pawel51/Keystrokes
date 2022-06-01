@@ -36,6 +36,34 @@ namespace Keystrokes.ViewModels
         private string _testSentence3 =
             "Armstrong became the first person to step onto the lunar surface six hours after landing on July 21";
 
+        private ObservableCollection<DistanceMetric> metricList;
+
+        public ObservableCollection<DistanceMetric> MetricList
+        {
+            get { return metricList; }
+            set { metricList = value; OnPropertyChanged(nameof(MetricList)); }
+        }
+
+
+
+        private DistanceMetric selectedMetric;
+
+        public DistanceMetric SelectedMetric
+        {
+            get { return selectedMetric; }
+            set 
+            {
+                GraphModel = graphService.GetKnnGraph(value);
+                if (GraphModel == null)
+                {
+                    GraphModel = graphService.CreateGraph(TrainingSamples.ToList(), value);
+                }
+                selectedMetric = value; 
+                OnPropertyChanged(nameof(SelectedMetric)); 
+            }
+        }
+
+
         public string TestSentence3
         {
             get { return _testSentence3; }
@@ -102,23 +130,32 @@ namespace Keystrokes.ViewModels
         {
             this.service = service;
             this.graphService = graphService;
-            
-            
+
+            MetricList = new ObservableCollection<DistanceMetric>();
+            MetricList.Add(DistanceMetric.HAMING);
+            MetricList.Add(DistanceMetric.EUCLIDIAN);
+            MetricList.Add(DistanceMetric.COSINE);
+            MetricList.Add(DistanceMetric.MANHATAN);
+            MetricList.Add(DistanceMetric.MINKOWSKI);
+            MetricList.Add(DistanceMetric.CHEBYSHEV);
+            MetricList.Add(DistanceMetric.JACCARD);
+            MetricList.Add(DistanceMetric.CHISQUARE);
+
             TrainingSamples = new ObservableCollection<TrainSample>(service.GetTrainSamples());
             TestSamples = new ObservableCollection<TestSample>(service.GetTestSamples());
 
 
             
-            GraphModel = graphService.GetKnnGraph();
+            GraphModel = graphService.GetKnnGraph(SelectedMetric);
 
 
-            if (GraphModel.Nodes == null || GraphModel.Edges == null)
+            if (GraphModel == null)
             {
-                GraphModel = graphService.CreateGraph(TrainingSamples.ToList(), DistanceMetric.EUCLIDIAN);
+                GraphModel = graphService.CreateGraph(TrainingSamples.ToList(), SelectedMetric);
             }
             else
             {
-                graphService.UpdateGraphToDb(GraphModel, DistanceMetric.EUCLIDIAN);
+                graphService.UpdateGraphToDb(GraphModel, SelectedMetric);
             }
         }
     }

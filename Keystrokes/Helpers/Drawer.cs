@@ -38,6 +38,7 @@ namespace Keystrokes.Helpers
             return e;
         }
 
+        
         public Label CreateLabel(Canvas c, int width, int height, int left, int top, Brush brush, string content)
         {
             Label e = new Label();

@@ -78,7 +78,7 @@
                        Visibility="{Binding KParamVisibility}"/>
             <TextBox Grid.Row="1" 
                      Grid.Column="2" 
-                     Text="{Binding KParam}" 
+                     Text="{Binding KParam, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ParameterTxtBox}"
                      Visibility="{Binding KParamVisibility}"></TextBox>
 
@@ -92,7 +92,7 @@
             <TextBox Grid.Row="1" 
                      Grid.Column="2" 
                      Grid.ColumnSpan="2"
-                     Text="{Binding ProbThreshold}" 
+                     Text="{Binding ProbThreshold, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ParameterTxtBox}"
                      Visibility="{Binding ProbThresholdVisibility}"></TextBox>
 
@@ -104,7 +104,7 @@
                        Visibility="{Binding FlightTimeVisibility}"/>
             <TextBox Grid.Row="1" 
                      Grid.Column="2" 
-                     Text="{Binding FlightBayes}" 
+                     Text="{Binding FlightBayes, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ParameterTxtBox}"
                      Visibility="{Binding FlightTimeVisibility}"></TextBox>
 
@@ -116,7 +116,7 @@
                        Visibility="{Binding DwellTimeVisibility}"/>
             <TextBox Grid.Row="1" 
                      Grid.Column="3" 
-                     Text="{Binding DwellBayes}" 
+                     Text="{Binding DwellBayes, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ParameterTxtBox}"
                      Visibility="{Binding DwellTimeVisibility}"></TextBox>
 
@@ -188,8 +188,8 @@
         <GroupBox Grid.Column="1"  Header="Test samples" Width="180" FontSize="22" HorizontalAlignment="Left" Margin="10,20" Height="750" Grid.RowSpan="6" VerticalAlignment="Top">
             <StackPanel>
                 <Button Content="Read Test Data" Click="ReadTestData_Click" Width="100" Height="22" FontSize="14" Margin="5"/>
-                <Button Content="Classify Selected" Click="Classify_BtnClicked" Width="100" Height="22" FontSize="14" Margin="5"/>
-                <Button Content="Classify Knn" Click="ClassifyKnn_BtnClicked" Width="100" Height="22" FontSize="14" Margin="5"/>
+                <Button Content="Classify Selected" Padding="5" Height="50" Click="Classify_BtnClicked" Width="130"  FontSize="14" Margin="5" Background="GreenYellow" BorderBrush="Black" BorderThickness="4" FontWeight="Bold"/>
+                <!--<Button Content="Classify Knn" Click="ClassifyKnn_BtnClicked" Width="100" Height="22" FontSize="14" Margin="5"/>-->
                 <DataGrid x:Name="TestDataGrid" ItemsSource="{Binding TestSamples}"  AutoGenerateColumns="True"  HorizontalScrollBarVisibility="Visible" FontSize="14" IsReadOnly="True"
                   AutoGeneratingColumn="TrainData_AutoGeneratingColumn" VerticalScrollBarVisibility="Visible" Height="650">
                 </DataGrid>
@@ -236,12 +236,26 @@
                                       Width="780" Height="640"
                                       HorizontalAlignment="Left"
                                       >
-                            <Border x:Name="canvasBorderKnn" HorizontalAlignment="Left"  BorderThickness="2" BorderBrush="Black" Margin="20" Width="604" Height="604">
-                                <Canvas x:Name="canvasKnn" Background="White" Width="600" Height="600">
-                                </Canvas>
-                            </Border>
+                            <StackPanel>
+                                <Label Content="Dwell ------>" Margin="40,0,0,0"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="----- Flight"  VerticalAlignment="Top" Margin="0,20,0,0">
+                                        <Label.LayoutTransform>
+                                            <RotateTransform Angle="-90"/>
+                                        </Label.LayoutTransform>
+                                    </Label>
+
+                                    <Border x:Name="canvasBorderKnn" HorizontalAlignment="Left"  BorderThickness="2" BorderBrush="Black" Margin="20" Width="604" Height="604" >
+                                        <Canvas x:Name="canvasKnn" Background="White" Width="600" Height="600">
+                                        </Canvas>
+                                    </Border>
+                                </StackPanel>
+                                
+                            </StackPanel>
+                            
                         </ScrollViewer>
                     </TabItem>
+                    
                 </TabControl>
             </TabPanel>
 

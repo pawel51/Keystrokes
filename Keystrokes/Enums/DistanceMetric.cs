@@ -13,6 +13,8 @@ namespace Keystrokes.Enums
         CHEBYSHEV = 2,
         MINKOWSKI = 3,
         HAMING = 4,
-        COSINE = 5
+        COSINE = 5,
+        JACCARD = 6,
+        CHISQUARE = 7
     }
 }

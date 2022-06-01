@@ -46,8 +46,8 @@ namespace Keystrokes
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<KeystrokeView>();
-            services.AddSingleton<ClassificationView>();
+            services.AddTransient<KeystrokeView>();
+            services.AddTransient<ClassificationView>();
             services.AddTransient<IKeystrokeService, KeystrokeService>();
             services.AddTransient<IGraphService, GraphService>();
             services.AddTransient<IKnnClassificatorService, KnnClassificationService>();

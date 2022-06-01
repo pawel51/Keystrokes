@@ -110,7 +110,29 @@ namespace Keystrokes.Views
             ClassificationViewModel dc = (ClassificationViewModel)DataContext;
 
             if (!Validation(dc)) return;
+
+            switch (dc.SelectedAlgorithm)
+            {
+                case Algorithm.KNN:
+                    KnnClassification(dc);
+                    break;
+                case Algorithm.KMEANS:
+                    KMeansClassification(dc);
+                    break;
+                case Algorithm.BAYES:
+                    BayesClassification(dc);
+                    break;
+                case Algorithm.DECISSIONTREES:
+                    TreeClassification(dc);
+                    break;
+            }
+
             
+
+        }
+
+        private void KMeansClassification(ClassificationViewModel dc)
+        {
             List<TestSample> testSamples = TestDataGrid.SelectedItems.Cast<TestSample>().ToList();
             List<Dictionary<string, double>> outcomes = new List<Dictionary<string, double>>();
 
@@ -118,7 +140,60 @@ namespace Keystrokes.Views
             testSamples.ForEach(sample =>
             {
                 KnnNode knnNode = graphService.TestSampleToKnnNode(sample);
-                Dictionary<string, double> keyProbList = classificationService.TreeDecisions(dc.GraphModel, knnNode, 0.4, canvasDwell, canvasFlight);
+                graphService.UpdateGraph(new TrainSample(sample), dc.GraphModel, dc.SelectedMetric);
+                Dictionary<string, double> keyProbList = classificationService.FindNearestMean(dc.GraphModel, knnNode, dc.KParam, canvasKnn);
+                // key of the greatest value
+                correctClassifications = CheckAccuracy(sample, correctClassifications, keyProbList);
+
+                outcomes.Add(keyProbList);
+
+            });
+
+            // updates treedecission's accuracy on the chart 
+            UpdateChart(dc, outcomes, correctClassifications, 1);
+
+            LogOutcomes(dc, outcomes);
+
+            dc.KmeansResults = outcomes[0];
+        }
+
+        private void BayesClassification(ClassificationViewModel dc)
+        {
+            List<TestSample> testSamples = TestDataGrid.SelectedItems.Cast<TestSample>().ToList();
+            List<Dictionary<string, double>> outcomes = new List<Dictionary<string, double>>();
+
+            int correctClassifications = 0;
+            testSamples.ForEach(sample =>
+            {
+                KnnNode knnNode = graphService.TestSampleToKnnNode(sample);
+                graphService.UpdateGraph(new TrainSample(sample), dc.GraphModel, dc.SelectedMetric);
+                Dictionary<string, double> keyProbList = classificationService.FindMostLikelyClassBayes(dc.GraphModel, knnNode, dc.DwellBayes, dc.FlightBayes, canvasKnn);
+                // key of the greatest value
+                correctClassifications = CheckAccuracy(sample, correctClassifications, keyProbList);
+
+                outcomes.Add(keyProbList);
+
+            });
+
+            // updates treedecission's accuracy on the chart 
+            UpdateChart(dc, outcomes, correctClassifications, 2);
+
+            LogOutcomes(dc, outcomes);
+
+            dc.BayesResults = outcomes[0];
+        }
+
+        private void TreeClassification(ClassificationViewModel dc)
+        {
+            List<TestSample> testSamples = TestDataGrid.SelectedItems.Cast<TestSample>().ToList();
+            List<Dictionary<string, double>> outcomes = new List<Dictionary<string, double>>();
+
+            int correctClassifications = 0;
+            testSamples.ForEach(sample =>
+            {
+                KnnNode knnNode = graphService.TestSampleToKnnNode(sample);
+                graphService.UpdateGraph(new TrainSample(sample), dc.GraphModel, dc.SelectedMetric);
+                Dictionary<string, double> keyProbList = classificationService.TreeDecisions(dc.GraphModel, knnNode, dc.ProbThreshold * 1.0 / 100, canvasDwell, canvasFlight);
                 // key of the greatest value
                 correctClassifications = CheckAccuracy(sample, correctClassifications, keyProbList);
 
@@ -132,9 +207,7 @@ namespace Keystrokes.Views
             LogOutcomes(dc, outcomes);
 
             dc.TreeResults = outcomes[0];
-
         }
-        
 
         private void ClassifyKnn_BtnClicked(object sender, RoutedEventArgs e)
         {
@@ -142,6 +215,12 @@ namespace Keystrokes.Views
 
             if (!Validation(dc)) return;
 
+            KnnClassification(dc);
+
+        }
+
+        private void KnnClassification(ClassificationViewModel dc)
+        {
             List<TestSample> testSamples = TestDataGrid.SelectedItems.Cast<TestSample>().ToList();
 
             List<Dictionary<string, double>> outcomes = new List<Dictionary<string, double>>();
@@ -151,8 +230,8 @@ namespace Keystrokes.Views
             {
                 KnnNode knnNode = graphService.TestSampleToKnnNode(sample);
                 TrainSample trainSample = new TrainSample(sample);
-                graphService.UpdateGraph(trainSample, dc.GraphModel);
-                Dictionary<string, double> keyProbList = classificationService.FindMostCommonKnn(dc.GraphModel, knnNode, 5, canvasKnn);
+                graphService.UpdateGraph(trainSample, dc.GraphModel, dc.SelectedMetric);
+                Dictionary<string, double> keyProbList = classificationService.FindMostCommonKnn(dc.GraphModel, knnNode, dc.KParam, canvasKnn);
                 // key of the greatest value
                 correctClassifications = CheckAccuracy(sample, correctClassifications, keyProbList);
 
@@ -166,7 +245,6 @@ namespace Keystrokes.Views
             LogOutcomes(dc, outcomes);
 
             dc.KnnResults = outcomes[0];
-
         }
 
         private int CheckAccuracy(TestSample sample, int correctClassifications, Dictionary<string, double> keyProbList)
@@ -195,7 +273,7 @@ namespace Keystrokes.Views
         {
             if (dc.GraphModel == null) return false;
 
-            if (TestDataGrid.SelectedItems == null)
+            if (TestDataGrid.SelectedItems == null || TestDataGrid.SelectedItems.Count == 0)
             {
                 MessageBox.Show("You must select samples first");
                 return false;

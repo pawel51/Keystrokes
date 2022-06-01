@@ -12,13 +12,13 @@ namespace Keystrokes.Services.Interfaces
     public interface IGraphService
     {
         public bool AddGraphToDb(KnnGraph graph, DistanceMetric metric);
-        public KnnGraph GetKnnGraph();
+        public KnnGraph GetKnnGraph(DistanceMetric metric);
 
         public KnnGraph CreateGraph(List<TrainSample> trainData, DistanceMetric metric);
 
         public bool UpdateGraphToDb(KnnGraph graph, DistanceMetric metric);
 
-        public bool UpdateGraph(TrainSample trainSample, KnnGraph knnGraph);
+        public bool UpdateGraph(TrainSample trainSample, KnnGraph knnGraph, DistanceMetric metric);
 
         public KnnNode TrainSampleToKnnNode(TrainSample trainSample);
 

@@ -33,6 +33,8 @@ namespace Keystrokes.ViewModels
             MetricList.Add(DistanceMetric.MANHATAN);
             MetricList.Add(DistanceMetric.MINKOWSKI);
             MetricList.Add(DistanceMetric.CHEBYSHEV);
+            MetricList.Add(DistanceMetric.JACCARD);
+            MetricList.Add(DistanceMetric.CHISQUARE);
 
             AlgorithmsList = new ObservableCollection<Algorithm>();
             AlgorithmsList.Add(Algorithm.KNN);
@@ -59,7 +61,11 @@ namespace Keystrokes.ViewModels
             AccuracySeries[0].Values.AddRange(accVals.ToList().Select(v => new ObservableValue(v)));
 
             TestSamples = new ObservableCollection<TestSample>(keystrokeService.GetTestSamples());
-            GraphModel = graphService.GetKnnGraph();
+            GraphModel = graphService.GetKnnGraph(SelectedMetric);
+            //if (GraphModel == null)
+            //{
+            //    GraphModel = graphService.CreateGraph(new List<TrainSample>(), DistanceMetric.EUCLIDIAN);
+            //} 
 
         }
 
@@ -73,7 +79,7 @@ namespace Keystrokes.ViewModels
             set { algorithmsList = value; OnPropertyChanged(nameof(AlgorithmsList)); }
         }
 
-        private Algorithm selectedAlgorithm;
+        private Algorithm selectedAlgorithm = Algorithm.KNN;
 
         public Algorithm SelectedAlgorithm
         {
@@ -133,7 +139,16 @@ namespace Keystrokes.ViewModels
         public DistanceMetric SelectedMetric
         {
             get { return selectedMetric; }
-            set { selectedMetric = value; OnPropertyChanged(nameof(SelectedMetric)); }
+            set 
+            {
+                GraphModel = graphService.GetKnnGraph(value);
+                if (GraphModel == null)
+                {
+                    GraphModel = graphService.CreateGraph(new List<TrainSample>(), SelectedMetric);
+                }
+                selectedMetric = value; 
+                OnPropertyChanged(nameof(SelectedMetric)); 
+            }
         }
 
         #endregion
@@ -148,7 +163,7 @@ namespace Keystrokes.ViewModels
             set { kParam = value; OnPropertyChanged(nameof(KParam)); }
         }
 
-        private int flightBayes = 5;
+        private int flightBayes = 25;
 
         public int FlightBayes
         {
@@ -156,7 +171,7 @@ namespace Keystrokes.ViewModels
             set { flightBayes = value; OnPropertyChanged(nameof(FlightBayes)); }
         }
 
-        private int dwellBayes = 5;
+        private int dwellBayes = 10;
 
         public int DwellBayes
         {
@@ -164,9 +179,9 @@ namespace Keystrokes.ViewModels
             set { dwellBayes = value; OnPropertyChanged(nameof(DwellBayes)); }
         }
 
-        private int probThreshold;
+        private double probThreshold;
 
-        public int ProbThreshold
+        public double ProbThreshold
         {
             get { return probThreshold; }
             set { probThreshold = value; OnPropertyChanged(nameof(ProbThreshold)); }
