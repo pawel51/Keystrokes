@@ -45,7 +45,11 @@ namespace Keystrokes.Services.Impl
                 .OrderBy(edge => edge.Value.Distance)
                 .Take(k)
                 .ToList()
-                .ForEach(edge => neighDistances.Add((edge.Key.Replace(node.Category, ""), edge.Value.Distance)));
+                .ForEach(edge =>
+                {
+                    if (!Double.IsNaN(edge.Value.Distance))
+                        neighDistances.Add((edge.Key.Replace(node.Category, ""), edge.Value.Distance));
+                });
 
             neighDistances.GroupBy(n => n.neigh.Split('_')[0])
                 .OrderBy(n => n.Count())
